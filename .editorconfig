@@ -12,3 +12,9 @@ trim_trailing_whitespace = true
 max_line_length = 120
 ktlint_standard_no-wildcard-imports = enabled
 ktlint_function_naming_ignore_when_annotated_with = Composable
+
+[*.xml]
+indent_size = 4
+
+[*.{yml,yaml,json,md}]
+indent_size = 2
