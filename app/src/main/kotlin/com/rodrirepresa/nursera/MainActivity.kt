@@ -13,16 +13,24 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.rodrirepresa.nursera.feature.favorites.presentation.navigation.FavoritesRoute
-import com.rodrirepresa.nursera.feature.home.presentation.navigation.HomeRoute
+import com.rodrirepresa.nursera.feature.favorites.presentation.navigation.favoritesScreen
+import com.rodrirepresa.nursera.feature.hospital.presentation.list.navigation.HospitalGraph
+import com.rodrirepresa.nursera.feature.hospital.presentation.list.navigation.hospitalGraph
 import com.rodrirepresa.nursera.feature.profile.presentation.navigation.ProfileRoute
+import com.rodrirepresa.nursera.feature.profile.presentation.navigation.profileScreen
 import com.rodrirepresa.nursera.ui.theme.NurseraTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlin.reflect.KClass
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -37,36 +45,54 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+enum class TopLevelDestination(
+    val label: String,
+    val icon: ImageVector,
+    val route: Any,
+    val routeClass: KClass<*>,
+) {
+    HOSPITAL("Hospital", Icons.Default.Home, HospitalGraph, HospitalGraph::class),
+    FAVORITES("Favorites", Icons.Default.Favorite, FavoritesRoute, FavoritesRoute::class),
+    PROFILE("Profile", Icons.Default.AccountBox, ProfileRoute, ProfileRoute::class),
+}
+
 @PreviewScreenSizes
 @Composable
 fun NurseraApp() {
-    var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
+    val navController = rememberNavController()
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination: NavDestination? = currentBackStackEntry?.destination
 
     NavigationSuiteScaffold(
         navigationSuiteItems = {
-            AppDestinations.entries.forEach {
+            TopLevelDestination.entries.forEach { destination ->
+                val selected = currentDestination?.hierarchy?.any {
+                    it.hasRoute(destination.routeClass)
+                } == true
                 item(
-                    icon = { Icon(it.icon, contentDescription = it.label) },
-                    label = { Text(it.label) },
-                    selected = it == currentDestination,
-                    onClick = { currentDestination = it },
+                    icon = { Icon(destination.icon, contentDescription = destination.label) },
+                    label = { Text(destination.label) },
+                    selected = selected,
+                    onClick = {
+                        navController.navigate(destination.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                 )
             }
         },
     ) {
-        when (currentDestination) {
-            AppDestinations.HOME -> HomeRoute()
-            AppDestinations.FAVORITES -> FavoritesRoute()
-            AppDestinations.PROFILE -> ProfileRoute()
+        NavHost(
+            navController = navController,
+            startDestination = HospitalGraph,
+        ) {
+            hospitalGraph(navController)
+            favoritesScreen()
+            profileScreen()
         }
     }
-}
-
-enum class AppDestinations(
-    val label: String,
-    val icon: ImageVector,
-) {
-    HOME("Home", Icons.Default.Home),
-    FAVORITES("Favorites", Icons.Default.Favorite),
-    PROFILE("Profile", Icons.Default.AccountBox),
 }

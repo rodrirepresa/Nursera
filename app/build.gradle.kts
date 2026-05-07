@@ -1,5 +1,6 @@
 plugins {
     id("nursera.android.application")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -22,13 +23,12 @@ dependencies {
 
     // Projects
     implementation(projects.core.common)
-    implementation(projects.feature.home.presentation)
+    implementation(projects.feature.hospital.data)
+    implementation(projects.feature.hospital.presentation)
     implementation(projects.feature.favorites.presentation)
     implementation(projects.feature.profile.presentation)
 
     // Libraries
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -38,6 +38,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
 
     // Debug
     debugImplementation(libs.androidx.compose.ui.tooling)

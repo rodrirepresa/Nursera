@@ -1,7 +1,10 @@
 # Nursera — Android Project
 
 ## Overview
-**Nursera** is a productivity Android app to help freelancers track their work sessions, clients, and projects.
+**Nursera** is a productivity Android app designed for nurses in Spain who work across multiple hospitals simultaneously.
+Many Spanish nurses split their working hours between different hospitals, resulting in variable monthly income that is hard to predict. Nursera solves this by letting nurses track their shifts per hospital and get notified the moment they hit their personal income target for the month.
+Core use case
+A nurse sets up her hospitals — each with its own pay rates per shift type (morning, afternoon, night, weekend, holiday). Every time she adds a shift to her monthly calendar, Nursera recalculates her projected net income. When the total crosses her personal target, she gets notified: she has earned enough and can stop taking extra shifts.
 
 > This file is the source of truth for conventions, architecture, and stack decisions.
 > Update it whenever a significant decision is made. Ask Claude to update it at the end of important sessions.
@@ -26,6 +29,9 @@ feature/
     │   ├── repository/        # Repository interfaces
     │   └── usecase/           # One class per use case
     └── presentation/
+        ├── model/
+        │   ├── [Feature]UiModel.kt     # UI-stable models — no domain types exposed to Composables
+        │   └── [Feature]UiMapper.kt    # Extension funs: DomainModel.toUiModel()
         ├── navigation/
         │   └── [Feature]Navigation.kt  # Public entry-point — exposes [Feature]Route(), keeps Screen internal
         ├── ui/
@@ -188,11 +194,33 @@ Nursera/
 | DI | Hilt | 2.52 | All ViewModels use `@HiltViewModel` |
 | DI codegen | KSP | 2.0.21-1.0.25 | Replaces kapt |
 | Async | Kotlin Coroutines + Flow | 1.8.1 | No RxJava |
-| Navigation | (to be decided) | — | Add here when chosen |
+| Navigation | Navigation Compose | 2.8.3 | `NavHost` + type-safe `@Serializable` routes; nested graphs per feature |
+| Serialization | kotlinx.serialization | 1.7.3 | Used for type-safe navigation route objects |
 | Networking | (to be added) | — | Add here when chosen |
 | Local DB | (to be added) | — | Add here when chosen |
 
 > When a new library is added to the project, update this table immediately.
+
+---
+
+## Navigation Conventions
+
+The app uses **Jetpack Navigation Compose 2.8.3** with type-safe routes (`@Serializable` objects/data classes).
+
+### Structure
+
+- Each feature's `[Feature]Navigation.kt` declares:
+  - Public `@Serializable` route objects/classes (the destinations `:app` can refer to)
+  - A `NavGraphBuilder` extension function (`[Feature]Graph(navController)` for multi-screen features, `[Feature]Screen()` for single-screen features)
+- `:app`'s `NurseraApp` composable owns the `NavController` and assembles all graphs into one `NavHost`
+- Features with internal sub-navigation (e.g. Hospital: List → Create) use a nested `navigation<Graph>{}` block; the inner destinations stay `private`
+
+### Rules
+
+- Route objects that `:app` needs to reference (for top-level tab selection) are `public`; inner routes are `private`
+- Never pass a `NavController` into a `@Composable` screen — pass typed callback lambdas instead
+- Tab selection uses `NavDestination.hierarchy.hasRoute(KClass)` so the correct tab highlights even when inside a nested graph
+- `NavigationSuiteScaffold` tab clicks use `popUpTo(findStartDestination().id) { saveState = true }` + `restoreState = true` to preserve tab back stacks
 
 ---
 
@@ -245,6 +273,14 @@ In tests, override with a fake that returns `StandardTestDispatcher` or `Unconfi
 - No nullable types unless strictly necessary — use empty defaults
 - All coroutines launched from ViewModel via `viewModelScope`
 - Use `@Immutable` on Compose UI state classes
+
+### UI Models
+- Domain models must **never** be imported in Composables or MVI State/Transform classes
+- Every feature's `presentation/model/` package contains:
+  - `[Feature]UiModel.kt` — `@Immutable data class` shaped for the UI (pre-formatted strings, no `LocalTime`/`UUID` raw values leaking into Compose)
+  - `[Feature]UiMapper.kt` — extension functions `DomainModel.toUiModel()` that do all formatting
+- Mapping happens in the ViewModel (inside the Flow operator that feeds the Transform), never in a Composable
+- The only domain import allowed in the presentation layer is in the ViewModel (use cases) and the mapper
 
 ### Compose
 - One screen = one `internal` `[Feature]Screen` composable + one public `[Feature]Route`
@@ -332,3 +368,4 @@ Always use type-safe project accessors (`projects.*`) — never `project(":some:
 - Skip the domain layer to call data sources directly from ViewModels
 - Use `GlobalScope` for coroutines
 - Import `[Feature]Screen` or `[Feature]ViewModel` from `:app` — use `[Feature]Route()` only
+- Import domain models (`feature.*.domain.model.*`) in Composables, State, or Transform classes — map to UI models first

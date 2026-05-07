@@ -1,5 +1,8 @@
 plugins {
-    id("nursera.android.library.compose")
+    id("nursera.android.module")
+    id("nursera.kotlin.android")
+    id("nursera.compose")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -13,6 +16,8 @@ dependencies {
 
     // Libraries
     implementation(libs.adidas.mvi)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.core.ktx)
     implementation(platform(libs.androidx.compose.bom))

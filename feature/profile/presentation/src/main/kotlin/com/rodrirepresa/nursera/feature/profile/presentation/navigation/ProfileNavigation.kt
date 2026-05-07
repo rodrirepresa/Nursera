@@ -1,9 +1,15 @@
 package com.rodrirepresa.nursera.feature.profile.presentation.navigation
 
-import androidx.compose.runtime.Composable
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.composable
 import com.rodrirepresa.nursera.feature.profile.presentation.ui.ProfileScreen
+import kotlinx.serialization.Serializable
 
-@Composable
-fun ProfileRoute() {
-    ProfileScreen()
+@Serializable
+object ProfileRoute
+
+fun NavGraphBuilder.profileScreen() {
+    composable<ProfileRoute> {
+        ProfileScreen()
+    }
 }

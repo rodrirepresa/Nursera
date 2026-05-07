@@ -8,6 +8,7 @@ dependencies {
     compileOnly(libs.plugins.kotlin.android.toDep())
     compileOnly(libs.plugins.kotlin.jvm.toDep())
     compileOnly(libs.plugins.kotlin.compose.toDep())
+    compileOnly(libs.plugins.kotlin.parcelize.toDep())
     compileOnly(libs.plugins.hilt.toDep())
     compileOnly(libs.plugins.ksp.toDep())
     compileOnly(libs.plugins.ktlint.toDep())
@@ -42,6 +43,34 @@ gradlePlugin {
         register("ktlint") {
             id = "nursera.ktlint"
             implementationClass = "KtLintConventionPlugin"
+        }
+        register("androidModule") {
+            id = "nursera.android.module"
+            implementationClass = "AndroidModuleConventionPlugin"
+        }
+        register("kotlinAndroid") {
+            id = "nursera.kotlin.android"
+            implementationClass = "KotlinAndroidConventionPlugin"
+        }
+        register("compose") {
+            id = "nursera.compose"
+            implementationClass = "ComposeConventionPlugin"
+        }
+        register("hiltAndroid") {
+            id = "nursera.hilt.android"
+            implementationClass = "HiltAndroidConventionPlugin"
+        }
+        register("strictClassVisibility") {
+            id = "nursera.strict.class.visibility"
+            implementationClass = "StrictClassVisibilityConventionPlugin"
+        }
+        register("parcelize") {
+            id = "nursera.parcelize"
+            implementationClass = "ParcelizeConventionPlugin"
+        }
+        register("junit") {
+            id = "nursera.junit"
+            implementationClass = "JunitConventionPlugin"
         }
     }
 }

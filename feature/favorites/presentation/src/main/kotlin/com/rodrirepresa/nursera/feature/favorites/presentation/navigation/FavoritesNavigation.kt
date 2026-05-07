@@ -1,9 +1,15 @@
 package com.rodrirepresa.nursera.feature.favorites.presentation.navigation
 
-import androidx.compose.runtime.Composable
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.composable
 import com.rodrirepresa.nursera.feature.favorites.presentation.ui.FavoritesScreen
+import kotlinx.serialization.Serializable
 
-@Composable
-fun FavoritesRoute() {
-    FavoritesScreen()
+@Serializable
+object FavoritesRoute
+
+fun NavGraphBuilder.favoritesScreen() {
+    composable<FavoritesRoute> {
+        FavoritesScreen()
+    }
 }
