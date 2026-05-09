@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,6 +26,7 @@ internal fun NeoBrutalistCard(
     onClick: () -> Unit = {},
     shadowColor: Color = Color(0xFF1A1A1A),
     shadowOffset: Dp = 4.dp,
+    backgroundColor: Color,
     content: @Composable () -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -51,13 +53,43 @@ internal fun NeoBrutalistCard(
                     .fillMaxWidth()
                     .offset(x = -animatedOffset, y = -animatedOffset)
                     .border(2.5.dp, shadowColor, RoundedCornerShape(12.dp))
-                    .background(Color.White, RoundedCornerShape(12.dp))
+                    .background(backgroundColor, RoundedCornerShape(12.dp))
                     .clickable(
                         interactionSource = interactionSource,
                         indication = null,
                         onClick = onClick,
                     )
                     .padding(16.dp),
+        ) {
+            content()
+        }
+    }
+}
+
+@Composable
+internal fun NeoBrutalistChip(
+    modifier: Modifier = Modifier,
+    shadowColor: Color = Color(0xFF1A1A1A),
+    backgroundColor: Color,
+    content: @Composable () -> Unit,
+) {
+
+    Box(modifier = modifier) {
+        Box(
+            modifier =
+                Modifier
+                    .matchParentSize()
+                    .offset(x = 2.dp, y = 2.dp)
+                    .border(1.dp, shadowColor, RoundedCornerShape(8.dp))
+                    .background(shadowColor, RoundedCornerShape(8.dp)),
+        )
+        Box(
+            modifier =
+                Modifier
+                    .wrapContentSize()
+                    .border(1.dp, shadowColor, RoundedCornerShape(8.dp))
+                    .background(backgroundColor, RoundedCornerShape(8.dp))
+                    .padding(horizontal = 5.dp),
         ) {
             content()
         }

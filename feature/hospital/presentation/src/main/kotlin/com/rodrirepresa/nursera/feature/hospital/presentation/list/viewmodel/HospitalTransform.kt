@@ -4,12 +4,14 @@ import com.adidas.mvi.sideeffects.SideEffects
 import com.adidas.mvi.transform.SideEffectTransform
 import com.adidas.mvi.transform.ViewTransform
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.ui.HospitalUiModel
+import kotlinx.collections.immutable.toPersistentList
+import kotlinx.collections.immutable.toPersistentSet
 
 internal object HospitalTransform {
     data class ShowHospitals(
         val hospitals: List<HospitalUiModel>,
     ) : ViewTransform<HospitalState, HospitalSideEffect>() {
-        override fun mutate(currentState: HospitalState): HospitalState = HospitalState.Loaded(hospitals)
+        override fun mutate(currentState: HospitalState): HospitalState = HospitalState.Loaded(hospitals.toPersistentList())
     }
 
     data class AddSideEffect(

@@ -4,17 +4,17 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -28,6 +28,7 @@ import com.rodrirepresa.nursera.feature.hospital.presentation.list.navigation.Ho
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.navigation.hospitalGraph
 import com.rodrirepresa.nursera.feature.profile.presentation.navigation.ProfileRoute
 import com.rodrirepresa.nursera.feature.profile.presentation.navigation.profileScreen
+import com.rodrirepresa.nursera.ui.NurseraNavBar
 import com.rodrirepresa.nursera.ui.theme.NurseraTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.reflect.KClass
@@ -56,43 +57,41 @@ enum class TopLevelDestination(
     PROFILE("Profile", Icons.Default.AccountBox, ProfileRoute, ProfileRoute::class),
 }
 
-@PreviewScreenSizes
 @Composable
 fun NurseraApp() {
     val navController = rememberNavController()
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination: NavDestination? = currentBackStackEntry?.destination
 
-    NavigationSuiteScaffold(
-        navigationSuiteItems = {
-            TopLevelDestination.entries.forEach { destination ->
-                val selected = currentDestination?.hierarchy?.any {
-                    it.hasRoute(destination.routeClass)
-                } == true
-                item(
-                    icon = { Icon(destination.icon, contentDescription = destination.label) },
-                    label = { Text(destination.label) },
-                    selected = selected,
-                    onClick = {
-                        navController.navigate(destination.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                )
-            }
-        },
-    ) {
+    // Full-screen box — content fills edge-to-edge, nav bar overlays at the bottom
+    Box(modifier = Modifier.fillMaxSize()) {
         NavHost(
             navController = navController,
             startDestination = HospitalGraph,
+            modifier = Modifier.fillMaxSize(),
         ) {
             hospitalGraph(navController)
             favoritesScreen()
             profileScreen()
         }
+
+        NurseraNavBar(
+            destinations = TopLevelDestination.entries,
+            isSelected = { destination ->
+                currentDestination?.hierarchy?.any {
+                    it.hasRoute(destination.routeClass)
+                } == true
+            },
+            onDestinationClick = { destination ->
+                navController.navigate(destination.route) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            },
+            modifier = Modifier.align(Alignment.BottomCenter),
+        )
     }
 }
