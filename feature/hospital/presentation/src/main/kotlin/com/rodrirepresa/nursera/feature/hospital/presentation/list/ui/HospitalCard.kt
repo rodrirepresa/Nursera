@@ -27,20 +27,22 @@ import com.rodrirepresa.nursera.feature.hospital.presentation.NeoBrutalistChip
 @Composable
 internal fun HospitalCard(
     hospital: HospitalUiModel,
-    onDeleteClick: () -> Unit,
+    onHospitalClick: () -> Unit,
 ) {
     NeoBrutalistCard(
         modifier = Modifier.fillMaxWidth(),
         backgroundColor = Color(hospital.color),
+        onClick = onHospitalClick,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
-                modifier = Modifier
-                    .padding(start = 8.dp)
-                    .weight(1f),
+                modifier =
+                    Modifier
+                        .padding(start = 8.dp)
+                        .weight(1f),
             ) {
                 Text(
                     text = hospital.name,
@@ -50,10 +52,11 @@ internal fun HospitalCard(
                     overflow = TextOverflow.Ellipsis,
                 )
 
-                val label = when (val size = hospital.shifts.size) {
-                    0 -> "Sin turnos"
-                    else -> "$size tipos de turnos"
-                }
+                val label =
+                    when (val size = hospital.shifts.size) {
+                        0 -> "Sin turnos"
+                        else -> "$size tipos de turnos"
+                    }
 
                 Text(
                     text = label,

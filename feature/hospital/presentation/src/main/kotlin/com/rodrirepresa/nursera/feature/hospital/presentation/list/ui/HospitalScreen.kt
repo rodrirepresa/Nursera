@@ -24,12 +24,18 @@ import kotlinx.collections.immutable.ImmutableList
 
 @Composable
 internal fun HospitalScreen(
-    onNavigateToCreate: () -> Unit,
+    navigateToCreateHospital: () -> Unit,
     viewModel: HospitalViewModel = hiltViewModel(),
 ) {
     MviContainer(
         state = viewModel.state,
-        onSideEffect = { sideEffect -> consumeSideEffects(sideEffect) },
+        onSideEffect = { sideEffect ->
+            consumeSideEffects(
+                sideEffect = sideEffect,
+                navigateToCreateHospital = navigateToCreateHospital,
+                navigateToDetail = {},
+            )
+        },
     ) { state ->
         Scaffold { innerPadding ->
             when (state) {
@@ -58,20 +64,21 @@ private fun HospitalScreenLoaded(
     executeIntent: (HospitalIntent) -> Unit,
 ) {
     Column(
-        modifier = Modifier
-            .padding(innerPadding)
-            .padding(
-                start = 16.dp,
-                end = 16.dp,
-                top = 16.dp,
-            ),
+        modifier =
+            Modifier
+                .padding(innerPadding)
+                .padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 16.dp,
+                ),
     ) {
-
-        val label = when (val size = hospitalList.size) {
-            0 -> "Añade aquí tus centros de trabajo"
-            1 -> "Un centro de trabajo"
-            else -> "$size centros de trabajo"
-        }
+        val label =
+            when (val size = hospitalList.size) {
+                0 -> "Añade aquí tus centros de trabajo"
+                1 -> "Un centro de trabajo"
+                else -> "$size centros de trabajo"
+            }
 
         Header(
             modifier = Modifier.padding(bottom = 8.dp),
@@ -84,18 +91,30 @@ private fun HospitalScreenLoaded(
                 Modifier
                     .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(vertical = 16.dp),
+            contentPadding = PaddingValues(top = 16.dp, bottom = 100.dp),
         ) {
             items(hospitalList, key = { it.id }) { hospital ->
                 Box(modifier = Modifier.padding(bottom = 4.dp, end = 4.dp)) {
                     HospitalCard(
                         hospital = hospital,
-                        onDeleteClick = { executeIntent(HospitalIntent.DeleteHospital(hospital.id)) },
+                        onHospitalClick = { executeIntent(HospitalIntent.OpenHospitalDetail(hospital.id)) },
                     )
                 }
+            }
+            item {
+                AddHospitalButton(executeIntent)
             }
         }
     }
 }
 
-private fun consumeSideEffects(sideEffect: HospitalSideEffect) {}
+private fun consumeSideEffects(
+    sideEffect: HospitalSideEffect,
+    navigateToCreateHospital: () -> Unit,
+    navigateToDetail: () -> Unit,
+) {
+    when (sideEffect) {
+        is HospitalSideEffect.OpenCreateHospital -> navigateToCreateHospital()
+        is HospitalSideEffect.OpenHospitalDetail -> navigateToDetail()
+    }
+}

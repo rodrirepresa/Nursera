@@ -3,44 +3,44 @@ package com.rodrirepresa.nursera.feature.hospital.data.repository
 import com.rodrirepresa.nursera.feature.hospital.domain.model.Hospital
 import com.rodrirepresa.nursera.feature.hospital.domain.model.ShiftType
 import com.rodrirepresa.nursera.feature.hospital.domain.repository.HospitalRepository
-import java.time.LocalTime
-import java.util.UUID
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import java.time.LocalTime
+import java.util.UUID
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
 class HospitalRepositoryImpl
-@Inject
-constructor() : HospitalRepository {
-    private val hospitalsFlow = MutableStateFlow(seedHospitals())
+    @Inject
+    constructor() : HospitalRepository {
+        private val hospitalsFlow = MutableStateFlow(seedHospitals())
 
-    override fun observeHospitals(): Flow<List<Hospital>> = hospitalsFlow.asStateFlow()
+        override fun observeHospitals(): Flow<List<Hospital>> = hospitalsFlow.asStateFlow()
 
-    override suspend fun createHospital(
-        name: String,
-        color: Int,
-        irpf: Float,
-        shifts: List<ShiftType>,
-    ) {
-        val hospital =
-            Hospital(
-                id = UUID.randomUUID(),
-                name = name,
-                color = color,
-                irpf = irpf,
-                shifts = shifts.map { it.copy(id = UUID.randomUUID()) },
-            )
-        hospitalsFlow.update { current -> current + hospital }
+        override suspend fun createHospital(
+            name: String,
+            color: Int,
+            irpf: Float,
+            shifts: List<ShiftType>,
+        ) {
+            val hospital =
+                Hospital(
+                    id = UUID.randomUUID(),
+                    name = name,
+                    color = color,
+                    irpf = irpf,
+                    shifts = shifts.map { it.copy(id = UUID.randomUUID()) },
+                )
+            hospitalsFlow.update { current -> current + hospital }
+        }
+
+        override suspend fun deleteHospital(id: UUID) {
+            hospitalsFlow.update { current -> current.filter { it.id != id } }
+        }
     }
-
-    override suspend fun deleteHospital(id: UUID) {
-        hospitalsFlow.update { current -> current.filter { it.id != id } }
-    }
-}
 
 private fun seedHospitals(): List<Hospital> =
     listOf(

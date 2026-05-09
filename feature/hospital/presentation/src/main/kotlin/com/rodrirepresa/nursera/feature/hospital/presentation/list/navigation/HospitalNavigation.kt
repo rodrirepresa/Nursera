@@ -21,7 +21,7 @@ fun NavGraphBuilder.hospitalGraph(navController: NavController) {
     navigation<HospitalGraph>(startDestination = HospitalList) {
         composable<HospitalList> {
             HospitalScreen(
-                onNavigateToCreate = { navController.navigate(CreateHospital) },
+                navigateToCreateHospital = { navController.navigate(CreateHospital) },
             )
         }
         composable<CreateHospital> {

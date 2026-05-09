@@ -73,7 +73,6 @@ internal fun NeoBrutalistChip(
     backgroundColor: Color,
     content: @Composable () -> Unit,
 ) {
-
     Box(modifier = modifier) {
         Box(
             modifier =

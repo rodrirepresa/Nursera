@@ -108,7 +108,7 @@ class HospitalViewModelTest {
                 val loaded = awaitItem().view as HospitalState.Loaded
                 assertEquals(1, loaded.hospitals.size)
 
-                viewModel.execute(HospitalIntent.DeleteHospital(hospital.id))
+                viewModel.execute(HospitalIntent.OpenHospitalDetail(hospital.id))
                 advanceUntilIdle()
                 val afterDelete = awaitItem().view as HospitalState.Loaded
                 assertTrue(afterDelete.hospitals.isEmpty())

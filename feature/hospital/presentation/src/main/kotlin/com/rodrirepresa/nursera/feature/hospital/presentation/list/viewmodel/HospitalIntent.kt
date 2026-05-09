@@ -6,5 +6,7 @@ import java.util.UUID
 sealed interface HospitalIntent : Intent {
     data object Load : HospitalIntent
 
-    data class DeleteHospital(val id: UUID) : HospitalIntent
+    data class OpenHospitalDetail(val id: UUID) : HospitalIntent
+
+    data object OpenCreateHospital : HospitalIntent
 }
