@@ -40,6 +40,27 @@ class HospitalRepositoryImpl
         override suspend fun deleteHospital(id: UUID) {
             hospitalsFlow.update { current -> current.filter { it.id != id } }
         }
+
+        override suspend fun getHospital(id: UUID): Hospital? = hospitalsFlow.value.find { it.id == id }
+
+        override suspend fun updateHospital(
+            id: UUID,
+            irpf: Float,
+            additionalShifts: List<ShiftType>,
+        ) {
+            hospitalsFlow.update { current ->
+                current.map { hospital ->
+                    if (hospital.id == id) {
+                        hospital.copy(
+                            irpf = irpf,
+                            shifts = hospital.shifts + additionalShifts.map { it.copy(id = UUID.randomUUID()) },
+                        )
+                    } else {
+                        hospital
+                    }
+                }
+            }
+        }
     }
 
 private fun seedHospitals(): List<Hospital> =

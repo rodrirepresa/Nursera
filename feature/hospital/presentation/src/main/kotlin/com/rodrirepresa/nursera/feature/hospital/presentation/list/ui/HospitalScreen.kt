@@ -21,10 +21,12 @@ import com.rodrirepresa.nursera.feature.hospital.presentation.list.viewmodel.Hos
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.viewmodel.HospitalState
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.viewmodel.HospitalViewModel
 import kotlinx.collections.immutable.ImmutableList
+import java.util.UUID
 
 @Composable
 internal fun HospitalScreen(
     navigateToCreateHospital: () -> Unit,
+    navigateToEditHospital: (UUID) -> Unit,
     viewModel: HospitalViewModel = hiltViewModel(),
 ) {
     MviContainer(
@@ -33,7 +35,7 @@ internal fun HospitalScreen(
             consumeSideEffects(
                 sideEffect = sideEffect,
                 navigateToCreateHospital = navigateToCreateHospital,
-                navigateToDetail = {},
+                navigateToEditHospital = navigateToEditHospital,
             )
         },
     ) { state ->
@@ -111,10 +113,10 @@ private fun HospitalScreenLoaded(
 private fun consumeSideEffects(
     sideEffect: HospitalSideEffect,
     navigateToCreateHospital: () -> Unit,
-    navigateToDetail: () -> Unit,
+    navigateToEditHospital: (UUID) -> Unit,
 ) {
     when (sideEffect) {
         is HospitalSideEffect.OpenCreateHospital -> navigateToCreateHospital()
-        is HospitalSideEffect.OpenHospitalDetail -> navigateToDetail()
+        is HospitalSideEffect.OpenHospitalDetail -> navigateToEditHospital(sideEffect.id)
     }
 }

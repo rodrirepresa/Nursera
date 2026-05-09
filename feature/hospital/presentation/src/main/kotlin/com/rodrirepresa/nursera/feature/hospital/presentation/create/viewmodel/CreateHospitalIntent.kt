@@ -1,13 +1,20 @@
 package com.rodrirepresa.nursera.feature.hospital.presentation.create.viewmodel
 
 import com.adidas.mvi.Intent
-import com.rodrirepresa.nursera.feature.hospital.presentation.list.ui.ShiftTypeFormData
+import com.rodrirepresa.nursera.feature.hospital.presentation.create.model.ShiftFormUiState
 
 sealed interface CreateHospitalIntent : Intent {
-    data class Save(
-        val name: String,
-        val color: Int,
-        val irpf: Float,
-        val shifts: List<ShiftTypeFormData>,
-    ) : CreateHospitalIntent
+    data object Load : CreateHospitalIntent
+
+    data class UpdateName(val value: String) : CreateHospitalIntent
+
+    data class UpdateIrpf(val value: String) : CreateHospitalIntent
+
+    data object AddShift : CreateHospitalIntent
+
+    data class UpdateShiftAt(val index: Int, val shift: ShiftFormUiState) : CreateHospitalIntent
+
+    data class RemoveShift(val index: Int) : CreateHospitalIntent
+
+    data object Save : CreateHospitalIntent
 }

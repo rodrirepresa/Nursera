@@ -1,5 +1,6 @@
-package com.rodrirepresa.nursera.feature.hospital.presentation.create.ui
+package com.rodrirepresa.nursera.feature.hospital.presentation.edit.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -40,34 +42,41 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.adidas.mvi.compose.MviContainer
 import com.rodrirepresa.nursera.feature.hospital.presentation.NeoBrutalistCard
 import com.rodrirepresa.nursera.feature.hospital.presentation.create.model.ShiftFormUiState
-import com.rodrirepresa.nursera.feature.hospital.presentation.create.viewmodel.CreateHospitalIntent
-import com.rodrirepresa.nursera.feature.hospital.presentation.create.viewmodel.CreateHospitalSideEffect
-import com.rodrirepresa.nursera.feature.hospital.presentation.create.viewmodel.CreateHospitalState
-import com.rodrirepresa.nursera.feature.hospital.presentation.create.viewmodel.CreateHospitalViewModel
+import com.rodrirepresa.nursera.feature.hospital.presentation.edit.viewmodel.EditHospitalIntent
+import com.rodrirepresa.nursera.feature.hospital.presentation.edit.viewmodel.EditHospitalSideEffect
+import com.rodrirepresa.nursera.feature.hospital.presentation.edit.viewmodel.EditHospitalState
+import com.rodrirepresa.nursera.feature.hospital.presentation.edit.viewmodel.EditHospitalViewModel
+import com.rodrirepresa.nursera.feature.hospital.presentation.edit.viewmodel.ExistingShiftUiModel
 import kotlinx.collections.immutable.persistentListOf
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun CreateHospitalScreen(
+internal fun EditHospitalScreen(
+    hospitalId: UUID,
     onNavigateBack: () -> Unit,
-    viewModel: CreateHospitalViewModel = hiltViewModel(),
+    viewModel: EditHospitalViewModel = hiltViewModel(),
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.execute(CreateHospitalIntent.Load)
+    LaunchedEffect(hospitalId) {
+        viewModel.execute(EditHospitalIntent.Load(hospitalId))
     }
 
     MviContainer(
         state = viewModel.state,
         onSideEffect = { sideEffect ->
             when (sideEffect) {
-                is CreateHospitalSideEffect.NavigateBack -> onNavigateBack()
+                is EditHospitalSideEffect.NavigateBack -> onNavigateBack()
             }
         },
     ) { state ->
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Nuevo Hospital") },
+                    title = {
+                        if (state is EditHospitalState.Form) {
+                            Text(state.hospitalName, maxLines = 1)
+                        }
+                    },
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
@@ -77,23 +86,34 @@ internal fun CreateHospitalScreen(
             },
         ) { innerPadding ->
             when (state) {
-                is CreateHospitalState.Saving -> {
+                is EditHospitalState.Loading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
                 }
 
-                is CreateHospitalState.Loaded -> {
-                    CreateHospitalForm(
-                        loadedState = state,
-                        onUpdateName = { viewModel.execute(CreateHospitalIntent.UpdateName(it)) },
-                        onUpdateIrpf = { viewModel.execute(CreateHospitalIntent.UpdateIrpf(it)) },
-                        onAddShift = { viewModel.execute(CreateHospitalIntent.AddShift) },
-                        onRemoveShift = { viewModel.execute(CreateHospitalIntent.RemoveShift(it)) },
+                is EditHospitalState.Error -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("No se pudo cargar el hospital.")
+                    }
+                }
+
+                is EditHospitalState.Saving -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
+
+                is EditHospitalState.Form -> {
+                    EditHospitalForm(
+                        formState = state,
+                        onUpdateIrpf = { viewModel.execute(EditHospitalIntent.UpdateIrpf(it)) },
+                        onAddShift = { viewModel.execute(EditHospitalIntent.AddShift) },
+                        onRemoveShift = { viewModel.execute(EditHospitalIntent.RemoveShift(it)) },
                         onUpdateShift = { index, updated ->
-                            viewModel.execute(CreateHospitalIntent.UpdateShiftAt(index, updated))
+                            viewModel.execute(EditHospitalIntent.UpdateShiftAt(index, updated))
                         },
-                        onSave = { viewModel.execute(CreateHospitalIntent.Save) },
+                        onSave = { viewModel.execute(EditHospitalIntent.Save) },
                         modifier = Modifier.padding(innerPadding),
                     )
                 }
@@ -103,9 +123,8 @@ internal fun CreateHospitalScreen(
 }
 
 @Composable
-private fun CreateHospitalForm(
-    loadedState: CreateHospitalState.Loaded,
-    onUpdateName: (String) -> Unit,
+private fun EditHospitalForm(
+    formState: EditHospitalState.Form,
     onUpdateIrpf: (String) -> Unit,
     onAddShift: () -> Unit,
     onRemoveShift: (Int) -> Unit,
@@ -122,38 +141,43 @@ private fun CreateHospitalForm(
     ) {
         item {
             Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = loadedState.name,
-                onValueChange = onUpdateName,
-                label = { Text("Nombre del hospital") },
-                placeholder = { Text("Máximo 60 caracteres") },
-                isError = loadedState.nameError != null,
-                supportingText =
-                    loadedState.nameError?.let {
-                            error ->
-                        { Text(error, color = MaterialTheme.colorScheme.error) }
-                    },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
+            HospitalColorBadge(
+                name = formState.hospitalName,
+                color = Color(formState.hospitalColor),
             )
         }
 
         item {
             OutlinedTextField(
-                value = loadedState.irpf,
+                value = formState.irpf,
                 onValueChange = onUpdateIrpf,
                 label = { Text("IRPF %") },
                 placeholder = { Text("0 – 100") },
-                isError = loadedState.irpfError != null,
+                isError = formState.irpfError != null,
                 supportingText =
-                    loadedState.irpfError?.let {
-                            error ->
+                    formState.irpfError?.let { error ->
                         { Text(error, color = MaterialTheme.colorScheme.error) }
                     },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             )
+        }
+
+        if (formState.existingShifts.isNotEmpty()) {
+            item {
+                Spacer(modifier = Modifier.height(4.dp))
+                HorizontalDivider()
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    "Turnos actuales",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            items(formState.existingShifts.size) { index ->
+                ExistingShiftRow(formState.existingShifts[index])
+            }
         }
 
         item {
@@ -165,17 +189,21 @@ private fun CreateHospitalForm(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text("Tipos de turno", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                Text(
+                    "Añadir nuevos turnos",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                )
                 IconButton(onClick = onAddShift) {
                     Icon(Icons.Default.Add, contentDescription = "Añadir turno")
                 }
             }
         }
 
-        itemsIndexed(loadedState.shifts, key = { index, _ -> index }) { index, shift ->
-            ShiftCard(
+        itemsIndexed(formState.newShifts, key = { index, _ -> index }) { index, shift ->
+            NewShiftCard(
                 shift = shift,
-                canDelete = loadedState.shifts.size > 1,
+                canDelete = true,
                 onUpdate = { onUpdateShift(index, it) },
                 onDelete = { onRemoveShift(index) },
             )
@@ -185,10 +213,10 @@ private fun CreateHospitalForm(
             Spacer(modifier = Modifier.height(8.dp))
             Button(
                 onClick = onSave,
-                enabled = loadedState.canSave,
+                enabled = formState.canSave,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Guardar hospital")
+                Text("Guardar cambios")
             }
             Spacer(modifier = Modifier.height(24.dp))
         }
@@ -196,7 +224,49 @@ private fun CreateHospitalForm(
 }
 
 @Composable
-private fun ShiftCard(
+private fun HospitalColorBadge(
+    name: String,
+    color: Color,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .background(color, RoundedCornerShape(12.dp))
+                .padding(horizontal = 16.dp),
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        Text(name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+private fun ExistingShiftRow(shift: ExistingShiftUiModel) {
+    NeoBrutalistCard(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(bottom = 4.dp, end = 4.dp),
+        backgroundColor = Color(0xFFF5F5F0),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column {
+                Text(shift.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                Text(shift.schedule, style = MaterialTheme.typography.bodySmall)
+            }
+            Text(shift.hourlyRate, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
+        }
+    }
+}
+
+@Composable
+private fun NewShiftCard(
     shift: ShiftFormUiState,
     canDelete: Boolean,
     onUpdate: (ShiftFormUiState) -> Unit,
@@ -220,8 +290,7 @@ private fun ShiftCard(
                     label = { Text("Nombre del turno") },
                     isError = shift.nameError != null,
                     supportingText =
-                        shift.nameError?.let {
-                                error ->
+                        shift.nameError?.let { error ->
                             { Text(error, color = MaterialTheme.colorScheme.error) }
                         },
                     modifier = Modifier.weight(1f),
@@ -249,8 +318,7 @@ private fun ShiftCard(
                     placeholder = { Text("HH:mm") },
                     isError = shift.startTimeError != null,
                     supportingText =
-                        shift.startTimeError?.let {
-                                error ->
+                        shift.startTimeError?.let { error ->
                             { Text(error, color = MaterialTheme.colorScheme.error) }
                         },
                     modifier = Modifier.weight(1f),
@@ -264,8 +332,7 @@ private fun ShiftCard(
                     placeholder = { Text("HH:mm") },
                     isError = shift.endTimeError != null,
                     supportingText =
-                        shift.endTimeError?.let {
-                                error ->
+                        shift.endTimeError?.let { error ->
                             { Text(error, color = MaterialTheme.colorScheme.error) }
                         },
                     modifier = Modifier.weight(1f),
@@ -280,8 +347,7 @@ private fun ShiftCard(
                 label = { Text("€/hora") },
                 isError = shift.hourlyRateError != null,
                 supportingText =
-                    shift.hourlyRateError?.let {
-                            error ->
+                    shift.hourlyRateError?.let { error ->
                         { Text(error, color = MaterialTheme.colorScheme.error) }
                     },
                 modifier = Modifier.fillMaxWidth(),
@@ -294,19 +360,27 @@ private fun ShiftCard(
 
 @Preview(showBackground = true)
 @Composable
-private fun CreateHospitalFormPreview() {
-    CreateHospitalForm(
-        loadedState =
-            CreateHospitalState.Loaded(
-                name = "Hospital La Paz",
-                irpf = "15",
-                shifts =
+private fun EditHospitalFormPreview() {
+    EditHospitalForm(
+        formState =
+            EditHospitalState.Form(
+                hospitalId = UUID.randomUUID(),
+                hospitalName = "Hospital La Paz",
+                hospitalColor = 0xFFDAF5F0.toInt(),
+                originalIrpf = "15",
+                irpf = "18",
+                existingShifts =
                     persistentListOf(
-                        ShiftFormUiState(name = "Mañana", startTime = "08:00", endTime = "15:00", hourlyRate = "18.5"),
+                        ExistingShiftUiModel("Mañana", "08:00–15:00", "18.50€/h"),
+                        ExistingShiftUiModel("Tarde", "15:00–22:00", "19.00€/h"),
                     ),
+                newShifts =
+                    persistentListOf(
+                        ShiftFormUiState(name = "Noche", startTime = "22:00", endTime = "08:00", hourlyRate = "23.0"),
+                    ),
+                isDirty = true,
                 canSave = true,
             ),
-        onUpdateName = {},
         onUpdateIrpf = {},
         onAddShift = {},
         onRemoveShift = {},

@@ -6,8 +6,14 @@ import com.rodrirepresa.nursera.feature.hospital.domain.usecase.CreateHospitalUs
 import com.rodrirepresa.nursera.feature.hospital.domain.usecase.CreateHospitalUseCaseImpl
 import com.rodrirepresa.nursera.feature.hospital.domain.usecase.DeleteHospitalUseCase
 import com.rodrirepresa.nursera.feature.hospital.domain.usecase.DeleteHospitalUseCaseImpl
+import com.rodrirepresa.nursera.feature.hospital.domain.usecase.GetHospitalUseCase
+import com.rodrirepresa.nursera.feature.hospital.domain.usecase.GetHospitalUseCaseImpl
+import com.rodrirepresa.nursera.feature.hospital.domain.usecase.GetRandomHospitalColorUseCase
+import com.rodrirepresa.nursera.feature.hospital.domain.usecase.GetRandomHospitalColorUseCaseImpl
 import com.rodrirepresa.nursera.feature.hospital.domain.usecase.ObserveHospitalsUseCase
 import com.rodrirepresa.nursera.feature.hospital.domain.usecase.ObserveHospitalsUseCaseImpl
+import com.rodrirepresa.nursera.feature.hospital.domain.usecase.UpdateHospitalUseCase
+import com.rodrirepresa.nursera.feature.hospital.domain.usecase.UpdateHospitalUseCaseImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -27,4 +33,15 @@ abstract class HospitalDataModule {
 
     @Binds
     abstract fun bindDeleteHospitalUseCase(impl: DeleteHospitalUseCaseImpl): DeleteHospitalUseCase
+
+    @Binds
+    abstract fun bindGetRandomHospitalColorUseCase(
+        impl: GetRandomHospitalColorUseCaseImpl,
+    ): GetRandomHospitalColorUseCase
+
+    @Binds
+    abstract fun bindGetHospitalUseCase(impl: GetHospitalUseCaseImpl): GetHospitalUseCase
+
+    @Binds
+    abstract fun bindUpdateHospitalUseCase(impl: UpdateHospitalUseCaseImpl): UpdateHospitalUseCase
 }

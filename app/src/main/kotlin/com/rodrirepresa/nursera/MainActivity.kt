@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -26,6 +25,7 @@ import com.rodrirepresa.nursera.feature.favorites.presentation.navigation.Favori
 import com.rodrirepresa.nursera.feature.favorites.presentation.navigation.favoritesScreen
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.navigation.HospitalGraph
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.navigation.hospitalGraph
+import com.rodrirepresa.nursera.feature.hospital.presentation.list.navigation.isHospitalTabRoot
 import com.rodrirepresa.nursera.feature.profile.presentation.navigation.ProfileRoute
 import com.rodrirepresa.nursera.feature.profile.presentation.navigation.profileScreen
 import com.rodrirepresa.nursera.ui.NurseraNavBar
@@ -75,23 +75,29 @@ fun NurseraApp() {
             profileScreen()
         }
 
-        NurseraNavBar(
-            destinations = TopLevelDestination.entries,
-            isSelected = { destination ->
-                currentDestination?.hierarchy?.any {
-                    it.hasRoute(destination.routeClass)
-                } == true
-            },
-            onDestinationClick = { destination ->
-                navController.navigate(destination.route) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
+        val isTopLevel = currentDestination.isHospitalTabRoot() ||
+            currentDestination?.hasRoute(FavoritesRoute::class) == true ||
+            currentDestination?.hasRoute(ProfileRoute::class) == true
+        if (isTopLevel) {
+            NurseraNavBar(
+                destinations = TopLevelDestination.entries,
+                isSelected = { destination ->
+                    when (destination) {
+                        TopLevelDestination.HOSPITAL -> currentDestination.isHospitalTabRoot()
+                        else -> currentDestination?.hasRoute(destination.routeClass) == true
                     }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-            },
-            modifier = Modifier.align(Alignment.BottomCenter),
-        )
+                },
+                onDestinationClick = { destination ->
+                    navController.navigate(destination.route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                modifier = Modifier.align(Alignment.BottomCenter),
+            )
+        }
     }
 }

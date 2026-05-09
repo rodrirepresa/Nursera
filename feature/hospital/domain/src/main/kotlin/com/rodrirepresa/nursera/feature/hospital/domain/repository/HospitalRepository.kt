@@ -16,4 +16,12 @@ interface HospitalRepository {
     )
 
     suspend fun deleteHospital(id: UUID)
+
+    suspend fun getHospital(id: UUID): Hospital?
+
+    suspend fun updateHospital(
+        id: UUID,
+        irpf: Float,
+        additionalShifts: List<ShiftType>,
+    )
 }

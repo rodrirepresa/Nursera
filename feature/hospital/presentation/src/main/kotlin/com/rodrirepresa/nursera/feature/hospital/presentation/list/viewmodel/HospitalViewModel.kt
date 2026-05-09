@@ -48,7 +48,10 @@ internal class HospitalViewModel
         ): Flow<StateTransform<State<HospitalState, HospitalSideEffect>>> =
             when (intent) {
                 is HospitalIntent.Load -> executeLoad()
-                is HospitalIntent.OpenHospitalDetail -> executeAddSideEffect(HospitalSideEffect.OpenHospitalDetail)
+                is HospitalIntent.OpenHospitalDetail ->
+                    executeAddSideEffect(
+                        HospitalSideEffect.OpenHospitalDetail(intent.id),
+                    )
                 HospitalIntent.OpenCreateHospital -> executeAddSideEffect(HospitalSideEffect.OpenCreateHospital)
             }
 
