@@ -1,4 +1,4 @@
-package com.rodrirepresa.nursera.feature.hospital.presentation
+package com.rodrirepresa.nursera.core.ui
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
@@ -21,18 +21,19 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun NeoBrutalistCard(
+fun NeoBrutalistCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
     shadowColor: Color = Color(0xFF1A1A1A),
     shadowOffset: Dp = 4.dp,
     backgroundColor: Color,
+    forcePressed: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val animatedOffset by animateDpAsState(
-        targetValue = if (isPressed) shadowOffset else 0.dp,
+        targetValue = if (isPressed || forcePressed) shadowOffset else 0.dp,
         label = "cardPressOffset",
     )
 
@@ -67,7 +68,51 @@ internal fun NeoBrutalistCard(
 }
 
 @Composable
-internal fun NeoBrutalistChip(
+fun NeoBrutalistIconButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    shadowColor: Color = Color(0xFF1A1A1A),
+    shadowOffset: Dp = 4.dp,
+    backgroundColor: Color = Color.White,
+    content: @Composable () -> Unit,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val animatedOffset by animateDpAsState(
+        targetValue = if (isPressed) shadowOffset else 0.dp,
+        label = "iconButtonPressOffset",
+    )
+
+    Box(modifier = modifier.wrapContentSize()) {
+        Box(
+            modifier =
+                Modifier
+                    .matchParentSize()
+                    .offset(x = shadowOffset, y = shadowOffset)
+                    .border(2.5.dp, shadowColor, RoundedCornerShape(12.dp))
+                    .background(shadowColor, RoundedCornerShape(12.dp)),
+        )
+        Box(
+            modifier =
+                Modifier
+                    .wrapContentSize()
+                    .offset(x = -animatedOffset, y = -animatedOffset)
+                    .border(2.5.dp, shadowColor, RoundedCornerShape(12.dp))
+                    .background(backgroundColor, RoundedCornerShape(12.dp))
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = null,
+                        onClick = onClick,
+                    )
+                    .padding(12.dp),
+        ) {
+            content()
+        }
+    }
+}
+
+@Composable
+fun NeoBrutalistChip(
     modifier: Modifier = Modifier,
     shadowColor: Color = Color(0xFF1A1A1A),
     backgroundColor: Color,

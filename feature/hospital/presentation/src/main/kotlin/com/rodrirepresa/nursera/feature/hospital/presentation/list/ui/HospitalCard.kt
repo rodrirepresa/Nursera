@@ -20,8 +20,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rodrirepresa.nursera.feature.hospital.presentation.NeoBrutalistCard
-import com.rodrirepresa.nursera.feature.hospital.presentation.NeoBrutalistChip
+import com.rodrirepresa.nursera.core.ui.NeoBrutalistCard
+import com.rodrirepresa.nursera.core.ui.NeoBrutalistChip
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

@@ -27,6 +27,7 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 rootProject.name = "Nursera"
 include(":app")
 include(":core:common")
+include(":core:ui")
 include(":feature:hospital:data")
 include(":feature:hospital:domain")
 include(":feature:hospital:presentation")

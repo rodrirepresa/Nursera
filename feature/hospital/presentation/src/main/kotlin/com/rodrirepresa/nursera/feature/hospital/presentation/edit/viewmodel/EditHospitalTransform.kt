@@ -4,8 +4,11 @@ import com.adidas.mvi.sideeffects.SideEffects
 import com.adidas.mvi.transform.SideEffectTransform
 import com.adidas.mvi.transform.ViewTransform
 import com.rodrirepresa.nursera.feature.hospital.presentation.create.model.ShiftFormUiState
+import com.rodrirepresa.nursera.feature.hospital.presentation.edit.validators.validateIrpf
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.collections.immutable.toPersistentSet
 
 internal object EditHospitalTransform {
     data class ShowForm(
@@ -13,10 +16,10 @@ internal object EditHospitalTransform {
         val hospitalName: String,
         val hospitalColor: Int,
         val irpf: String,
-        val existingShifts: ImmutableList<ExistingShiftUiModel>,
+        val existingShifts: ImmutableList<ShiftUiModel>,
     ) : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
         override fun mutate(currentState: EditHospitalState): EditHospitalState =
-            EditHospitalState.Form(
+            EditHospitalState.Loaded(
                 hospitalId = hospitalId,
                 hospitalName = hospitalName,
                 hospitalColor = hospitalColor,
@@ -30,27 +33,65 @@ internal object EditHospitalTransform {
         override fun mutate(currentState: EditHospitalState): EditHospitalState = EditHospitalState.Error
     }
 
-    data class UpdateForm(
+    data class UpdateIrpf(
         val irpf: String,
-        val irpfError: String?,
-        val newShifts: List<ShiftFormUiState>,
-        val isDirty: Boolean,
-        val canSave: Boolean,
     ) : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
         override fun mutate(currentState: EditHospitalState): EditHospitalState {
-            if (currentState !is EditHospitalState.Form) return currentState
+            if (currentState !is EditHospitalState.Loaded) return currentState
             return currentState.copy(
                 irpf = irpf,
-                irpfError = irpfError,
-                newShifts = newShifts.toPersistentList(),
-                isDirty = isDirty,
-                canSave = canSave,
+                irpfError = validateIrpf(irpf),
             )
         }
     }
 
-    object Saving : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
-        override fun mutate(currentState: EditHospitalState): EditHospitalState = EditHospitalState.Saving
+    data class UpdateForm(
+        val newShift: ShiftFormUiState?,
+        val canSave: Boolean,
+    ) : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
+        override fun mutate(currentState: EditHospitalState): EditHospitalState {
+            if (currentState !is EditHospitalState.Loaded) return currentState
+            return currentState.copy(
+                newShift = newShift,
+                canSave = canSave,
+                selectedShiftIndices = persistentSetOf(),
+            )
+        }
+    }
+
+    data class ToggleExistingShiftSelection(
+        val index: Int,
+    ) : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
+        override fun mutate(currentState: EditHospitalState): EditHospitalState {
+            if (currentState !is EditHospitalState.Loaded) return currentState
+            val updated =
+                currentState.selectedShiftIndices.toMutableSet().apply {
+                    if (contains(index)) remove(index) else add(index)
+                }
+            return currentState.copy(selectedShiftIndices = updated.toPersistentSet())
+        }
+    }
+
+    data class DeleteSelectedShifts(
+        private val shift: List<ShiftUiModel>,
+    ) : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
+        override fun mutate(currentState: EditHospitalState): EditHospitalState {
+            if (currentState !is EditHospitalState.Loaded) return currentState
+
+            return currentState.copy(
+                existingShifts = shift.toPersistentList(),
+                selectedShiftIndices = kotlinx.collections.immutable.persistentSetOf(),
+            )
+        }
+    }
+
+    data class Saving(
+        val isSaving: Boolean,
+    ) : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
+        override fun mutate(currentState: EditHospitalState): EditHospitalState {
+            if (currentState !is EditHospitalState.Loaded) return currentState
+            return currentState.copy(isSaving = isSaving)
+        }
     }
 
     data class AddSideEffect(

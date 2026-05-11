@@ -1,7 +1,7 @@
 package com.rodrirepresa.nursera.feature.hospital.presentation.create.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,22 +13,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,7 +29,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.adidas.mvi.compose.MviContainer
-import com.rodrirepresa.nursera.feature.hospital.presentation.NeoBrutalistCard
+import com.rodrirepresa.nursera.core.ui.NeoBrutalistCard
+import com.rodrirepresa.nursera.core.ui.NeoBrutalistIconButton
+import com.rodrirepresa.nursera.core.ui.NurseraCta
+import com.rodrirepresa.nursera.core.ui.NurseraTextField
+import com.rodrirepresa.nursera.core.ui.NurseraToolbar
 import com.rodrirepresa.nursera.feature.hospital.presentation.create.model.ShiftFormUiState
 import com.rodrirepresa.nursera.feature.hospital.presentation.create.viewmodel.CreateHospitalIntent
 import com.rodrirepresa.nursera.feature.hospital.presentation.create.viewmodel.CreateHospitalSideEffect
@@ -46,16 +41,11 @@ import com.rodrirepresa.nursera.feature.hospital.presentation.create.viewmodel.C
 import com.rodrirepresa.nursera.feature.hospital.presentation.create.viewmodel.CreateHospitalViewModel
 import kotlinx.collections.immutable.persistentListOf
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun CreateHospitalScreen(
     onNavigateBack: () -> Unit,
     viewModel: CreateHospitalViewModel = hiltViewModel(),
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.execute(CreateHospitalIntent.Load)
-    }
-
     MviContainer(
         state = viewModel.state,
         onSideEffect = { sideEffect ->
@@ -64,133 +54,116 @@ internal fun CreateHospitalScreen(
             }
         },
     ) { state ->
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("Nuevo Hospital") },
-                    navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-                        }
-                    },
+        when (state) {
+            is CreateHospitalState.Loaded ->
+                CreateHospitalLoadedContent(
+                    state = state,
+                    executeIntent = viewModel::execute,
                 )
-            },
-        ) { innerPadding ->
-            when (state) {
-                is CreateHospitalState.Saving -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
-                }
-
-                is CreateHospitalState.Loaded -> {
-                    CreateHospitalForm(
-                        loadedState = state,
-                        onUpdateName = { viewModel.execute(CreateHospitalIntent.UpdateName(it)) },
-                        onUpdateIrpf = { viewModel.execute(CreateHospitalIntent.UpdateIrpf(it)) },
-                        onAddShift = { viewModel.execute(CreateHospitalIntent.AddShift) },
-                        onRemoveShift = { viewModel.execute(CreateHospitalIntent.RemoveShift(it)) },
-                        onUpdateShift = { index, updated ->
-                            viewModel.execute(CreateHospitalIntent.UpdateShiftAt(index, updated))
-                        },
-                        onSave = { viewModel.execute(CreateHospitalIntent.Save) },
-                        modifier = Modifier.padding(innerPadding),
-                    )
-                }
-            }
         }
     }
 }
 
 @Composable
-private fun CreateHospitalForm(
-    loadedState: CreateHospitalState.Loaded,
-    onUpdateName: (String) -> Unit,
-    onUpdateIrpf: (String) -> Unit,
-    onAddShift: () -> Unit,
-    onRemoveShift: (Int) -> Unit,
-    onUpdateShift: (Int, ShiftFormUiState) -> Unit,
-    onSave: () -> Unit,
+private fun CreateHospitalLoadedContent(
+    state: CreateHospitalState.Loaded,
+    executeIntent: (CreateHospitalIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyColumn(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        item {
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = loadedState.name,
-                onValueChange = onUpdateName,
-                label = { Text("Nombre del hospital") },
-                placeholder = { Text("Máximo 60 caracteres") },
-                isError = loadedState.nameError != null,
-                supportingText =
-                    loadedState.nameError?.let {
-                            error ->
-                        { Text(error, color = MaterialTheme.colorScheme.error) }
-                    },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-            )
-        }
+    Column(modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        NurseraToolbar(
+            title = "Nuevo Hospital",
+            onNavigateBack = { executeIntent(CreateHospitalIntent.NavigateBack) },
+        )
 
-        item {
-            OutlinedTextField(
-                value = loadedState.irpf,
-                onValueChange = onUpdateIrpf,
-                label = { Text("IRPF %") },
-                placeholder = { Text("0 – 100") },
-                isError = loadedState.irpfError != null,
-                supportingText =
-                    loadedState.irpfError?.let {
-                            error ->
-                        { Text(error, color = MaterialTheme.colorScheme.error) }
-                    },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            )
-        }
+        Spacer(modifier = Modifier.height(16.dp))
 
-        item {
-            Spacer(modifier = Modifier.height(4.dp))
-            HorizontalDivider()
-            Spacer(modifier = Modifier.height(4.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text("Tipos de turno", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
-                IconButton(onClick = onAddShift) {
-                    Icon(Icons.Default.Add, contentDescription = "Añadir turno")
+        LazyColumn(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            item {
+                NurseraTextField(
+                    value = state.name,
+                    onValueChange = { executeIntent(CreateHospitalIntent.UpdateName(it)) },
+                    label = "Nombre del hospital",
+                    placeholder = "Máximo 30 caracteres",
+                    isError = state.nameError != null,
+                    errorMessage = state.nameError,
+                )
+            }
+
+            item {
+                NurseraTextField(
+                    value = state.irpf,
+                    onValueChange = { executeIntent(CreateHospitalIntent.UpdateIrpf(it)) },
+                    label = "IRPF",
+                    placeholder = "0 – 100",
+                    isError = state.irpfError != null,
+                    errorMessage = state.irpfError,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    backgroundColor = Color(0xFFF4D738),
+                    shadowOffset = 4.dp,
+                    suffix = {
+                        Text(
+                            text = "%",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color(0xFF9E9E9E),
+                            modifier = Modifier.padding(start = 8.dp),
+                        )
+                    },
+                )
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        text = "Tipos de turno",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    NeoBrutalistIconButton(
+                        onClick = { executeIntent(CreateHospitalIntent.AddShift) },
+                        backgroundColor = Color.White,
+                        shadowOffset = 3.dp,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Añadir turno",
+                            modifier = Modifier.padding(0.dp),
+                        )
+                    }
                 }
             }
-        }
 
-        itemsIndexed(loadedState.shifts, key = { index, _ -> index }) { index, shift ->
-            ShiftCard(
-                shift = shift,
-                canDelete = loadedState.shifts.size > 1,
-                onUpdate = { onUpdateShift(index, it) },
-                onDelete = { onRemoveShift(index) },
-            )
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(
-                onClick = onSave,
-                enabled = loadedState.canSave,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("Guardar hospital")
+            itemsIndexed(state.shifts, key = { index, _ -> index }) { index, shift ->
+                ShiftCard(
+                    shift = shift,
+                    canDelete = state.shifts.size > 1,
+                    onUpdate = { executeIntent(CreateHospitalIntent.UpdateShiftAt(index, it)) },
+                    onDelete = { executeIntent(CreateHospitalIntent.RemoveShift(index)) },
+                )
             }
-            Spacer(modifier = Modifier.height(24.dp))
+
+            item {
+                NurseraCta(
+                    label = "Guardar hospital",
+                    onClick = { executeIntent(CreateHospitalIntent.Save) },
+                    isSaving = state.isSaving,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 4.dp, end = 4.dp),
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+            }
         }
     }
 }
@@ -207,25 +180,20 @@ private fun ShiftCard(
             Modifier
                 .fillMaxWidth()
                 .padding(bottom = 4.dp, end = 4.dp),
-        backgroundColor = Color(0xFFF5F5F0),
+        backgroundColor = Color(0xFFF4D738),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                OutlinedTextField(
+                NurseraTextField(
                     value = shift.name,
-                    onValueChange = { onUpdate(shift.copy(name = it.take(60))) },
-                    label = { Text("Nombre del turno") },
+                    onValueChange = { onUpdate(shift.copy(name = it.take(30))) },
+                    label = "Nombre del turno",
                     isError = shift.nameError != null,
-                    supportingText =
-                        shift.nameError?.let {
-                                error ->
-                            { Text(error, color = MaterialTheme.colorScheme.error) }
-                        },
+                    errorMessage = shift.nameError,
                     modifier = Modifier.weight(1f),
-                    singleLine = true,
                 )
                 if (canDelete) {
                     IconButton(onClick = onDelete) {
@@ -242,51 +210,36 @@ private fun ShiftCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                OutlinedTextField(
+                NurseraTextField(
                     value = shift.startTime,
                     onValueChange = { onUpdate(shift.copy(startTime = it)) },
-                    label = { Text("Inicio") },
-                    placeholder = { Text("HH:mm") },
+                    label = "Inicio",
+                    placeholder = "HH:mm",
                     isError = shift.startTimeError != null,
-                    supportingText =
-                        shift.startTimeError?.let {
-                                error ->
-                            { Text(error, color = MaterialTheme.colorScheme.error) }
-                        },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
+                    errorMessage = shift.startTimeError,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f),
                 )
-                OutlinedTextField(
+                NurseraTextField(
                     value = shift.endTime,
                     onValueChange = { onUpdate(shift.copy(endTime = it)) },
-                    label = { Text("Fin") },
-                    placeholder = { Text("HH:mm") },
+                    label = "Fin",
+                    placeholder = "HH:mm",
                     isError = shift.endTimeError != null,
-                    supportingText =
-                        shift.endTimeError?.let {
-                                error ->
-                            { Text(error, color = MaterialTheme.colorScheme.error) }
-                        },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
+                    errorMessage = shift.endTimeError,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f),
                 )
             }
 
-            OutlinedTextField(
+            NurseraTextField(
                 value = shift.hourlyRate,
                 onValueChange = { onUpdate(shift.copy(hourlyRate = it)) },
-                label = { Text("€/hora") },
+                label = "€/hora",
                 isError = shift.hourlyRateError != null,
-                supportingText =
-                    shift.hourlyRateError?.let {
-                            error ->
-                        { Text(error, color = MaterialTheme.colorScheme.error) }
-                    },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
+                errorMessage = shift.hourlyRateError,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                modifier = Modifier.fillMaxWidth(),
             )
         }
     }
@@ -294,9 +247,10 @@ private fun ShiftCard(
 
 @Preview(showBackground = true)
 @Composable
-private fun CreateHospitalFormPreview() {
-    CreateHospitalForm(
-        loadedState =
+private fun CreateHospitalLoadedContentPreview() {
+    CreateHospitalLoadedContent(
+        executeIntent = {},
+        state =
             CreateHospitalState.Loaded(
                 name = "Hospital La Paz",
                 irpf = "15",
@@ -306,11 +260,24 @@ private fun CreateHospitalFormPreview() {
                     ),
                 canSave = true,
             ),
-        onUpdateName = {},
-        onUpdateIrpf = {},
-        onAddShift = {},
-        onRemoveShift = {},
-        onUpdateShift = { _, _ -> },
-        onSave = {},
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun CreateHospitalLoadedContentSavingPreview() {
+    CreateHospitalLoadedContent(
+        executeIntent = {},
+        state =
+            CreateHospitalState.Loaded(
+                name = "Hospital La Paz",
+                irpf = "15",
+                shifts =
+                    persistentListOf(
+                        ShiftFormUiState(name = "Mañana", startTime = "08:00", endTime = "15:00", hourlyRate = "18.5"),
+                    ),
+                canSave = true,
+                isSaving = true,
+            ),
     )
 }

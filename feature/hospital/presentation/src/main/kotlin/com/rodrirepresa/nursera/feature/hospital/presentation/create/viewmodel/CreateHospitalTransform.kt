@@ -37,7 +37,10 @@ internal object CreateHospitalTransform {
     }
 
     object Saving : ViewTransform<CreateHospitalState, CreateHospitalSideEffect>() {
-        override fun mutate(currentState: CreateHospitalState): CreateHospitalState = CreateHospitalState.Saving
+        override fun mutate(currentState: CreateHospitalState): CreateHospitalState {
+            if (currentState !is CreateHospitalState.Loaded) return currentState
+            return currentState.copy(isSaving = true)
+        }
     }
 
     data class AddSideEffect(

@@ -82,6 +82,10 @@ internal class [Feature]ViewModel @Inject constructor(
 
     override val state: StateFlow<State<[Feature]State, [Feature]SideEffect>> = reducer.state
 
+    init {
+        execute([Feature]Intent.Load)
+    }
+
     override fun execute(intent: [Feature]Intent) {
         reducer.executeIntent(intent)
     }
@@ -120,10 +124,6 @@ internal object [Feature]Transform {
 internal fun [Feature]Screen(
     viewModel: [Feature]ViewModel = hiltViewModel(),
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.execute([Feature]Intent.Load)
-    }
-
     MviContainer(
         state = viewModel.state,
         onSideEffect = { sideEffect ->
@@ -150,6 +150,12 @@ ViewModels expose:
 - `state: StateFlow<State<XState, XSideEffect>>`
 - `execute(intent: XIntent)` function
 
+### Init vs LaunchedEffect for initial load
+
+- The initial `Load` intent is always triggered from `init {}` inside the ViewModel — never from a `LaunchedEffect` in the Screen.
+- For screens that receive route arguments (e.g. an `id`), inject `SavedStateHandle` into the ViewModel and read the arg with `savedStateHandle.toRoute<RouteClass>()`. The route class must be at least `internal` so the ViewModel can reference it.
+- In tests, construct `SavedStateHandle(mapOf("argName" to value))` and pass it directly to the ViewModel constructor.
+
 ### Screen visibility rule
 
 - The `[Feature]Screen` composable is always `internal`.
@@ -164,7 +170,8 @@ ViewModels expose:
 Nursera/
 ├── app/                        # App module — DI graph root, MainActivity
 ├── core/
-│   └── common/                 # Shared utilities: DispatcherProvider
+│   ├── common/                 # Shared utilities: DispatcherProvider
+│   └── ui/                     # Shared Compose design-system: NeoBrutalistCard, NeoBrutalistIconButton, NeoBrutalistChip, NurseraToolbar
 └── feature/
     ├── [Feature]/
     │   ├── data/              # nursera.kotlin.library
@@ -284,9 +291,22 @@ In tests, override with a fake that returns `StandardTestDispatcher` or `Unconfi
 
 ### Compose
 - One screen = one `internal` `[Feature]Screen` composable + one public `[Feature]Route`
-- Always provide `@Preview` for every screen
+- Always provide `@Preview` for every screen representing each visual state
 - Screens are wired to the ViewModel internally; `[Feature]Route` takes no parameters
 - Use `MviContainer` from `mvi-compose` to connect state and side effects
+- The loaded content composable is always named `[Feature]LoadedContent`
+- Use `NurseraLoadingView` and `NurseraErrorView` from `core/ui` for loading and error states — never inline `CircularProgressIndicator` or plain error `Text` directly in a screen
+- Saving state must be a field (`isSaving: Boolean`) inside the loaded state, never a separate top-level state — use `NurseraCta` with `isSaving` to reflect it in the UI
+
+### Intent callbacks in Composables
+- Loaded-content composables receive a single `executeIntent: ([Feature]Intent) -> Unit` lambda instead of individual callbacks per action — wire it as `executeIntent = viewModel::execute` from the screen
+- **All navigation is triggered via side effects.** The screen owns the navigation callbacks (`onNavigateBack`, `navigateTo*`) and wires them only inside `onSideEffect {}` in `MviContainer`. Composables below the screen never receive navigation lambdas — they fire an intent (e.g. `NavigateBack`) which the ViewModel converts to a side effect
+- Never pass `onNavigateBack` or any navigation lambda into a loaded-content composable or deeper
+
+### Previews for `core/ui` components
+- Every `public` `@Composable` in `core/ui` **must** have at least one `@Preview`
+- If the component has multiple visual states (pressed, error, empty, different content), each state gets its own `@Preview` function
+- Preview functions are `private` and live in the same file as the component
 
 ---
 

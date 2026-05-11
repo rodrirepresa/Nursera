@@ -1,24 +1,35 @@
 package com.rodrirepresa.nursera.feature.hospital.presentation.edit.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import com.adidas.mvi.MviHost
 import com.adidas.mvi.Reducer
 import com.adidas.mvi.State
 import com.adidas.mvi.transform.StateTransform
 import com.rodrirepresa.nursera.core.common.DispatcherProvider
-import com.rodrirepresa.nursera.feature.hospital.domain.model.ShiftType
+import com.rodrirepresa.nursera.feature.hospital.domain.usecase.AddShiftToHospitalUseCase
+import com.rodrirepresa.nursera.feature.hospital.domain.usecase.DeleteShiftsFromHospitalUseCase
 import com.rodrirepresa.nursera.feature.hospital.domain.usecase.GetHospitalUseCase
-import com.rodrirepresa.nursera.feature.hospital.domain.usecase.UpdateHospitalUseCase
+import com.rodrirepresa.nursera.feature.hospital.domain.usecase.ObserveHospitalByIdUseCase
+import com.rodrirepresa.nursera.feature.hospital.domain.usecase.UpdateHospitalIrpfUseCase
 import com.rodrirepresa.nursera.feature.hospital.presentation.create.model.ShiftFormUiState
-import com.rodrirepresa.nursera.feature.hospital.presentation.list.ui.ShiftTypeFormData
-import com.rodrirepresa.nursera.feature.hospital.presentation.list.ui.toDomain
+import com.rodrirepresa.nursera.feature.hospital.presentation.edit.mappers.toFormattedIrpf
+import com.rodrirepresa.nursera.feature.hospital.presentation.edit.mappers.toLocalTime
+import com.rodrirepresa.nursera.feature.hospital.presentation.edit.mappers.toShiftUiModel
+import com.rodrirepresa.nursera.feature.hospital.presentation.edit.validators.isValid
+import com.rodrirepresa.nursera.feature.hospital.presentation.edit.validators.validateIrpf
+import com.rodrirepresa.nursera.feature.hospital.presentation.edit.validators.withValidation
+import com.rodrirepresa.nursera.feature.hospital.presentation.list.navigation.EditHospital
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
-import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.transformLatest
 import java.util.UUID
 import javax.inject.Inject
 
@@ -26,10 +37,16 @@ import javax.inject.Inject
 internal class EditHospitalViewModel
     @Inject
     constructor(
-        private val dispatcherProvider: DispatcherProvider,
+        dispatcherProvider: DispatcherProvider,
         private val getHospitalUseCase: GetHospitalUseCase,
-        private val updateHospitalUseCase: UpdateHospitalUseCase,
+        private val addShiftToHospitalUseCase: AddShiftToHospitalUseCase,
+        private val updateHospitalIrpfUseCase: UpdateHospitalIrpfUseCase,
+        private val observeHospitalByIdUseCase: ObserveHospitalByIdUseCase,
+        private val deleteShiftsFromHospitalUseCase: DeleteShiftsFromHospitalUseCase,
+        savedStateHandle: SavedStateHandle,
     ) : ViewModel(), MviHost<EditHospitalIntent, State<EditHospitalState, EditHospitalSideEffect>> {
+        private val hospitalId: UUID = UUID.fromString(savedStateHandle.toRoute<EditHospital>().hospitalId)
+
         private val reducer: Reducer<EditHospitalIntent, State<EditHospitalState, EditHospitalSideEffect>> =
             com.adidas.mvi.reducer.Reducer(
                 coroutineScope = viewModelScope,
@@ -40,6 +57,10 @@ internal class EditHospitalViewModel
 
         override val state: StateFlow<State<EditHospitalState, EditHospitalSideEffect>> = reducer.state
 
+        init {
+            execute(EditHospitalIntent.Load)
+        }
+
         override fun execute(intent: EditHospitalIntent) {
             reducer.executeIntent(intent)
         }
@@ -48,20 +69,23 @@ internal class EditHospitalViewModel
             intent: EditHospitalIntent,
         ): Flow<StateTransform<State<EditHospitalState, EditHospitalSideEffect>>> =
             when (intent) {
-                is EditHospitalIntent.Load -> executeLoad(intent.hospitalId)
+                is EditHospitalIntent.Load -> executeLoad(hospitalId)
+                is EditHospitalIntent.NavigateBack -> executeAddSideEffect(EditHospitalSideEffect.NavigateBack)
                 is EditHospitalIntent.UpdateIrpf -> executeUpdateIrpf(intent.value)
                 is EditHospitalIntent.AddShift -> executeAddShift()
-                is EditHospitalIntent.UpdateShiftAt -> executeUpdateShiftAt(intent.index, intent.shift)
-                is EditHospitalIntent.RemoveShift -> executeRemoveShift(intent.index)
-                is EditHospitalIntent.Save -> executeSave(intent)
+                is EditHospitalIntent.UpdateNewShift -> executeUpdateShift(intent.shift)
+                is EditHospitalIntent.ToggleExistingShiftSelection -> executeToggleExistingShiftSelection(intent.index)
+                is EditHospitalIntent.DeleteSelectedShifts -> executeDeleteSelectedShifts()
+                is EditHospitalIntent.SaveShift -> executeSaveShift()
             }
 
+        @OptIn(ExperimentalCoroutinesApi::class)
         private fun executeLoad(id: UUID): Flow<StateTransform<State<EditHospitalState, EditHospitalSideEffect>>> =
-            flow {
+            observeHospitalByIdUseCase(id).transformLatest {
                 val hospital = getHospitalUseCase(id)
                 if (hospital == null) {
                     emit(EditHospitalTransform.ShowError)
-                    return@flow
+                    return@transformLatest
                 }
                 emit(
                     EditHospitalTransform.ShowForm(
@@ -69,7 +93,7 @@ internal class EditHospitalViewModel
                         hospitalName = hospital.name,
                         hospitalColor = hospital.color,
                         irpf = hospital.irpf.toFormattedIrpf(),
-                        existingShifts = hospital.shifts.map { it.toExistingUiModel() }.toPersistentList(),
+                        existingShifts = hospital.shifts.map { it.toShiftUiModel() }.toPersistentList(),
                     ),
                 )
             }
@@ -78,141 +102,85 @@ internal class EditHospitalViewModel
             value: String,
         ): Flow<StateTransform<State<EditHospitalState, EditHospitalSideEffect>>> =
             flow {
-                val form = currentForm() ?: return@flow
-                emit(rebuildForm(irpf = value, newShifts = form.newShifts))
+                val form = (state.value.view as? EditHospitalState.Loaded) ?: return@flow
+                emit(
+                    EditHospitalTransform.UpdateIrpf(
+                        irpf = value,
+                    ),
+                )
+                if (validateIrpf(value) == null && value.isNotBlank()) {
+                    updateHospitalIrpfUseCase(id = form.hospitalId, irpf = value.toFloat())
+                }
             }
 
         private fun executeAddShift(): Flow<StateTransform<State<EditHospitalState, EditHospitalSideEffect>>> =
             flow {
-                val form = currentForm() ?: return@flow
-                emit(rebuildForm(irpf = form.irpf, newShifts = form.newShifts + ShiftFormUiState()))
+                val form = (state.value.view as? EditHospitalState.Loaded) ?: return@flow
+                if (form.newShift != null) return@flow
+                emit(
+                    rebuildForm(
+                        newShift = ShiftFormUiState(),
+                    ),
+                )
             }
 
-        private fun executeUpdateShiftAt(
-            index: Int,
+        private fun executeUpdateShift(
             shift: ShiftFormUiState,
         ): Flow<StateTransform<State<EditHospitalState, EditHospitalSideEffect>>> =
             flow {
-                val form = currentForm() ?: return@flow
-                val updated = form.newShifts.toMutableList().also { it[index] = shift }
-                emit(rebuildForm(irpf = form.irpf, newShifts = updated))
+                emit(rebuildForm(newShift = shift))
             }
 
-        private fun executeRemoveShift(
+        private fun executeToggleExistingShiftSelection(
             index: Int,
         ): Flow<StateTransform<State<EditHospitalState, EditHospitalSideEffect>>> =
-            flow {
-                val form = currentForm() ?: return@flow
-                val updated = form.newShifts.toMutableList().also { it.removeAt(index) }
-                emit(rebuildForm(irpf = form.irpf, newShifts = updated))
-            }
+            flow { emit(EditHospitalTransform.ToggleExistingShiftSelection(index)) }
 
-        private fun executeSave(
-            intent: EditHospitalIntent,
-        ): Flow<StateTransform<State<EditHospitalState, EditHospitalSideEffect>>> =
+        private fun executeDeleteSelectedShifts(): Flow<
+            StateTransform<
+                State<EditHospitalState, EditHospitalSideEffect>,
+                >,
+            > =
             flow {
-                val form = currentForm() ?: return@flow
-                emit(EditHospitalTransform.Saving)
-                updateHospitalUseCase(
-                    id = form.hospitalId,
-                    irpf = form.irpf.toFloat(),
-                    additionalShifts =
-                        form.newShifts
-                            .filter { it.isValid() }
-                            .map { it.toShiftTypeFormData().toDomain() },
+                val state = state.value.view as? EditHospitalState.Loaded ?: error("Wrong state")
+                val remaining =
+                    state.existingShifts.filterIndexed { i, _ -> i !in state.selectedShiftIndices }
+                        .toPersistentList()
+                emit(EditHospitalTransform.DeleteSelectedShifts(remaining))
+                deleteShiftsFromHospitalUseCase(
+                    hospitalId = state.hospitalId,
+                    shiftsIds = state.selectedShiftIndices.map { state.existingShifts[it].id },
                 )
-                emit(EditHospitalTransform.AddSideEffect(EditHospitalSideEffect.NavigateBack))
             }
 
-        private fun currentForm(): EditHospitalState.Form? = state.value.view as? EditHospitalState.Form
+        private fun executeSaveShift(): Flow<StateTransform<State<EditHospitalState, EditHospitalSideEffect>>> =
+            flow {
+                val form = state.value.view as? EditHospitalState.Loaded ?: return@flow
+                val newShift = form.newShift
+                if (newShift != null && newShift.isValid()) {
+                    addShiftToHospitalUseCase(
+                        hospitalId = form.hospitalId,
+                        name = newShift.name,
+                        startTime = newShift.startTime.toLocalTime(),
+                        endTime = newShift.endTime.toLocalTime(),
+                        hourlyRate = newShift.hourlyRate.toDouble(),
+                    )
+                }
+                emit(EditHospitalTransform.Saving(false))
+            }.onStart {
+                emit(EditHospitalTransform.Saving(true))
+            }
 
-        private fun rebuildForm(
-            irpf: String,
-            newShifts: List<ShiftFormUiState>,
-        ): EditHospitalTransform.UpdateForm {
-            val form = currentForm()
-            val irpfError = validateIrpf(irpf)
-            val validatedShifts = newShifts.map { it.withValidation() }
-            val newShiftsValid = validatedShifts.isEmpty() || validatedShifts.all { it.isValid() }
-            val irpfChanged = form != null && irpf != form.originalIrpf
-            val hasNewShifts = validatedShifts.isNotEmpty() && validatedShifts.all { it.isValid() }
-            val isDirty = irpfChanged || hasNewShifts
-            val canSave = isDirty && irpfError == null && irpf.isNotBlank() && newShiftsValid
+        private fun executeAddSideEffect(
+            sideEffect: EditHospitalSideEffect,
+        ): Flow<StateTransform<State<EditHospitalState, EditHospitalSideEffect>>> =
+            flow { emit(EditHospitalTransform.AddSideEffect(sideEffect)) }
+
+        private fun rebuildForm(newShift: ShiftFormUiState?): EditHospitalTransform.UpdateForm {
+            val canSave = newShift != null && newShift.withValidation().isValid()
             return EditHospitalTransform.UpdateForm(
-                irpf = irpf,
-                irpfError = irpfError,
-                newShifts = validatedShifts,
-                isDirty = isDirty,
+                newShift = newShift?.withValidation(),
                 canSave = canSave,
             )
         }
     }
-
-private fun validateIrpf(value: String): String? {
-    if (value.isBlank()) return null
-    val f = value.toFloatOrNull() ?: return "Introduce un número válido"
-    if (f < 0 || f > 100) return "El IRPF debe estar entre 0 y 100"
-    return null
-}
-
-private val timeRegex = Regex("""^([01]\d|2[0-3]):[0-5]\d$""")
-private val timeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-
-private fun isValidTime(value: String) = timeRegex.matches(value)
-
-private fun ShiftFormUiState.withValidation(): ShiftFormUiState =
-    copy(
-        nameError =
-            when {
-                name.isEmpty() -> null
-                name.length > 60 -> "Máximo 60 caracteres"
-                else -> null
-            },
-        startTimeError =
-            when {
-                startTime.isEmpty() -> null
-                !isValidTime(startTime) -> "Formato HH:mm"
-                endTime.isNotEmpty() && isValidTime(endTime) &&
-                    startTime >= endTime -> "Debe ser anterior al fin"
-
-                else -> null
-            },
-        endTimeError =
-            when {
-                endTime.isEmpty() -> null
-                !isValidTime(endTime) -> "Formato HH:mm"
-                startTime.isNotEmpty() && isValidTime(startTime) &&
-                    endTime <= startTime -> "Debe ser posterior al inicio"
-
-                else -> null
-            },
-        hourlyRateError =
-            when {
-                hourlyRate.isEmpty() -> null
-                hourlyRate.toDoubleOrNull() == null -> "Número inválido"
-                hourlyRate.toDouble() <= 0 -> "Debe ser mayor que 0"
-                else -> null
-            },
-    )
-
-private fun ShiftFormUiState.isValid(): Boolean =
-    name.isNotBlank() &&
-        name.length <= 60 &&
-        isValidTime(startTime) &&
-        isValidTime(endTime) &&
-        startTime < endTime &&
-        hourlyRate.toDoubleOrNull()?.let { it > 0 } == true &&
-        nameError == null && startTimeError == null && endTimeError == null && hourlyRateError == null
-
-private fun ShiftFormUiState.toShiftTypeFormData(): ShiftTypeFormData =
-    ShiftTypeFormData(name = name, startTime = startTime, endTime = endTime, hourlyRate = hourlyRate)
-
-private fun ShiftType.toExistingUiModel(): ExistingShiftUiModel =
-    ExistingShiftUiModel(
-        name = name,
-        schedule = "${startTime.format(timeFormatter)}–${endTime.format(timeFormatter)}",
-        hourlyRate = "${"%.2f".format(hourlyRate)}€/h",
-    )
-
-private fun Float.toFormattedIrpf(): String =
-    if (this == this.toLong().toFloat()) this.toLong().toString() else this.toString()

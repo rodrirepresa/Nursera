@@ -2,8 +2,8 @@ package com.rodrirepresa.nursera.feature.hospital.presentation.edit.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,28 +11,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -40,27 +31,29 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.adidas.mvi.compose.MviContainer
-import com.rodrirepresa.nursera.feature.hospital.presentation.NeoBrutalistCard
+import com.rodrirepresa.nursera.core.ui.NeoBrutalistCard
+import com.rodrirepresa.nursera.core.ui.NeoBrutalistIconButton
+import com.rodrirepresa.nursera.core.ui.NurseraCta
+import com.rodrirepresa.nursera.core.ui.NurseraErrorView
+import com.rodrirepresa.nursera.core.ui.NurseraLoadingView
+import com.rodrirepresa.nursera.core.ui.NurseraTextField
+import com.rodrirepresa.nursera.core.ui.NurseraToolbar
 import com.rodrirepresa.nursera.feature.hospital.presentation.create.model.ShiftFormUiState
 import com.rodrirepresa.nursera.feature.hospital.presentation.edit.viewmodel.EditHospitalIntent
 import com.rodrirepresa.nursera.feature.hospital.presentation.edit.viewmodel.EditHospitalSideEffect
 import com.rodrirepresa.nursera.feature.hospital.presentation.edit.viewmodel.EditHospitalState
 import com.rodrirepresa.nursera.feature.hospital.presentation.edit.viewmodel.EditHospitalViewModel
-import com.rodrirepresa.nursera.feature.hospital.presentation.edit.viewmodel.ExistingShiftUiModel
+import com.rodrirepresa.nursera.feature.hospital.presentation.edit.viewmodel.ShiftUiModel
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentSetOf
+import kotlinx.coroutines.launch
 import java.util.UUID
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun EditHospitalScreen(
-    hospitalId: UUID,
     onNavigateBack: () -> Unit,
     viewModel: EditHospitalViewModel = hiltViewModel(),
 ) {
-    LaunchedEffect(hospitalId) {
-        viewModel.execute(EditHospitalIntent.Load(hospitalId))
-    }
-
     MviContainer(
         state = viewModel.state,
         onSideEffect = { sideEffect ->
@@ -69,52 +62,146 @@ internal fun EditHospitalScreen(
             }
         },
     ) { state ->
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = {
-                        if (state is EditHospitalState.Form) {
-                            Text(state.hospitalName, maxLines = 1)
-                        }
+        when (state) {
+            is EditHospitalState.Loading -> NurseraLoadingView()
+            is EditHospitalState.Error ->
+                NurseraErrorView(
+                    message = "No se pudo cargar el hospital.",
+                )
+
+            is EditHospitalState.Loaded ->
+                EditHospitalLoadedContent(
+                    state = state,
+                    executeIntent = viewModel::execute,
+                )
+        }
+    }
+}
+
+@Composable
+private fun EditHospitalLoadedContent(
+    state: EditHospitalState.Loaded,
+    executeIntent: (EditHospitalIntent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier =
+            Modifier
+                .background(Color(0xFFFFF8F0))
+                .fillMaxSize(),
+    ) {
+        NurseraToolbar(
+            title = state.hospitalName,
+            onNavigateBack = { executeIntent(EditHospitalIntent.NavigateBack) },
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        val listState = rememberLazyListState()
+        val scope = rememberCoroutineScope()
+
+        LazyColumn(
+            modifier =
+                modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            state = listState,
+            contentPadding = PaddingValues(vertical = 8.dp),
+        ) {
+            item {
+                NurseraTextField(
+                    value = state.irpf,
+                    onValueChange = { raw ->
+                        val filtered =
+                            raw.filter { it.isDigit() || it == '.' || it == ',' }
+                                .let { if (it.count { c -> c == '.' || c == ',' } > 1) state.irpf else it }
+                        executeIntent(EditHospitalIntent.UpdateIrpf(filtered))
                     },
-                    navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-                        }
+                    label = "IRPF",
+                    placeholder = "24",
+                    isError = state.irpfError != null,
+                    errorMessage = state.irpfError,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    shadowOffset = 4.dp,
+                    suffix = {
+                        Text(
+                            text = "%",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(start = 8.dp),
+                            color = Color.LightGray,
+                        )
                     },
                 )
-            },
-        ) { innerPadding ->
-            when (state) {
-                is EditHospitalState.Loading -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        text = "Turnos",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (state.selectedShiftIndices.isNotEmpty()) {
+                            NeoBrutalistIconButton(
+                                onClick = { executeIntent(EditHospitalIntent.DeleteSelectedShifts) },
+                                backgroundColor = Color(0xFFFF6B6B),
+                                shadowOffset = 3.dp,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Eliminar seleccionados",
+                                    modifier = Modifier.padding(0.dp),
+                                )
+                            }
+                        }
+                        NeoBrutalistIconButton(
+                            onClick = {
+                                executeIntent(EditHospitalIntent.AddShift)
+                                scope.launch {
+                                    if (state.existingShifts.isNotEmpty()) {
+                                        listState.animateScrollToItem(index = state.existingShifts.lastIndex)
+                                    }
+                                }
+                            },
+                            backgroundColor = Color.White,
+                            shadowOffset = 3.dp,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Añadir turno",
+                                modifier = Modifier.padding(0.dp),
+                            )
+                        }
                     }
                 }
+            }
 
-                is EditHospitalState.Error -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("No se pudo cargar el hospital.")
-                    }
+            if (state.existingShifts.isNotEmpty()) {
+                items(state.existingShifts.size) { index ->
+                    ExistingShiftRow(
+                        shift = state.existingShifts[index],
+                        backgroundColor = Color(state.hospitalColor),
+                        isSelected = index in state.selectedShiftIndices,
+                        onClick = { executeIntent(EditHospitalIntent.ToggleExistingShiftSelection(index)) },
+                    )
                 }
+            }
 
-                is EditHospitalState.Saving -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
-                }
-
-                is EditHospitalState.Form -> {
-                    EditHospitalForm(
-                        formState = state,
-                        onUpdateIrpf = { viewModel.execute(EditHospitalIntent.UpdateIrpf(it)) },
-                        onAddShift = { viewModel.execute(EditHospitalIntent.AddShift) },
-                        onRemoveShift = { viewModel.execute(EditHospitalIntent.RemoveShift(it)) },
-                        onUpdateShift = { index, updated ->
-                            viewModel.execute(EditHospitalIntent.UpdateShiftAt(index, updated))
-                        },
-                        onSave = { viewModel.execute(EditHospitalIntent.Save) },
-                        modifier = Modifier.padding(innerPadding),
+            if (state.newShift != null) {
+                item {
+                    NewShiftCard(
+                        shift = state.newShift,
+                        backgroundColor = Color(state.hospitalColor),
+                        // index = index,
+                        isSaving = state.isSaving,
+                        executeIntent = executeIntent,
                     )
                 }
             }
@@ -123,133 +210,20 @@ internal fun EditHospitalScreen(
 }
 
 @Composable
-private fun EditHospitalForm(
-    formState: EditHospitalState.Form,
-    onUpdateIrpf: (String) -> Unit,
-    onAddShift: () -> Unit,
-    onRemoveShift: (Int) -> Unit,
-    onUpdateShift: (Int, ShiftFormUiState) -> Unit,
-    onSave: () -> Unit,
-    modifier: Modifier = Modifier,
+private fun ExistingShiftRow(
+    shift: ShiftUiModel,
+    backgroundColor: Color,
+    isSelected: Boolean,
+    onClick: () -> Unit,
 ) {
-    LazyColumn(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        item {
-            Spacer(modifier = Modifier.height(8.dp))
-            HospitalColorBadge(
-                name = formState.hospitalName,
-                color = Color(formState.hospitalColor),
-            )
-        }
-
-        item {
-            OutlinedTextField(
-                value = formState.irpf,
-                onValueChange = onUpdateIrpf,
-                label = { Text("IRPF %") },
-                placeholder = { Text("0 – 100") },
-                isError = formState.irpfError != null,
-                supportingText =
-                    formState.irpfError?.let { error ->
-                        { Text(error, color = MaterialTheme.colorScheme.error) }
-                    },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            )
-        }
-
-        if (formState.existingShifts.isNotEmpty()) {
-            item {
-                Spacer(modifier = Modifier.height(4.dp))
-                HorizontalDivider()
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    "Turnos actuales",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-            items(formState.existingShifts.size) { index ->
-                ExistingShiftRow(formState.existingShifts[index])
-            }
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(4.dp))
-            HorizontalDivider()
-            Spacer(modifier = Modifier.height(4.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(
-                    "Añadir nuevos turnos",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                )
-                IconButton(onClick = onAddShift) {
-                    Icon(Icons.Default.Add, contentDescription = "Añadir turno")
-                }
-            }
-        }
-
-        itemsIndexed(formState.newShifts, key = { index, _ -> index }) { index, shift ->
-            NewShiftCard(
-                shift = shift,
-                canDelete = true,
-                onUpdate = { onUpdateShift(index, it) },
-                onDelete = { onRemoveShift(index) },
-            )
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(
-                onClick = onSave,
-                enabled = formState.canSave,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("Guardar cambios")
-            }
-            Spacer(modifier = Modifier.height(24.dp))
-        }
-    }
-}
-
-@Composable
-private fun HospitalColorBadge(
-    name: String,
-    color: Color,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .background(color, RoundedCornerShape(12.dp))
-                .padding(horizontal = 16.dp),
-        contentAlignment = Alignment.CenterStart,
-    ) {
-        Text(name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-    }
-}
-
-@Composable
-private fun ExistingShiftRow(shift: ExistingShiftUiModel) {
     NeoBrutalistCard(
         modifier =
             Modifier
                 .fillMaxWidth()
                 .padding(bottom = 4.dp, end = 4.dp),
-        backgroundColor = Color(0xFFF5F5F0),
+        backgroundColor = if (isSelected) Color(0xFFFF6B6B) else backgroundColor,
+        forcePressed = isSelected,
+        onClick = onClick,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -268,102 +242,128 @@ private fun ExistingShiftRow(shift: ExistingShiftUiModel) {
 @Composable
 private fun NewShiftCard(
     shift: ShiftFormUiState,
-    canDelete: Boolean,
-    onUpdate: (ShiftFormUiState) -> Unit,
-    onDelete: () -> Unit,
+    backgroundColor: Color,
+    isSaving: Boolean,
+    executeIntent: (EditHospitalIntent) -> Unit,
 ) {
     NeoBrutalistCard(
         modifier =
             Modifier
                 .fillMaxWidth()
                 .padding(bottom = 4.dp, end = 4.dp),
-        backgroundColor = Color(0xFFF5F5F0),
+        backgroundColor = backgroundColor,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(
+            NurseraTextField(
+                value = shift.name,
+                onValueChange = {
+                    executeIntent(
+                        EditHospitalIntent.UpdateNewShift(
+                            shift.copy(name = it.take(60)),
+                        ),
+                    )
+                },
+                label = "Nombre del turno",
+                isError = shift.nameError != null,
+                errorMessage = shift.nameError,
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                OutlinedTextField(
-                    value = shift.name,
-                    onValueChange = { onUpdate(shift.copy(name = it.take(60))) },
-                    label = { Text("Nombre del turno") },
-                    isError = shift.nameError != null,
-                    supportingText =
-                        shift.nameError?.let { error ->
-                            { Text(error, color = MaterialTheme.colorScheme.error) }
-                        },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                )
-                if (canDelete) {
-                    IconButton(onClick = onDelete) {
-                        Icon(
-                            Icons.Default.Delete,
-                            contentDescription = "Eliminar turno",
-                            tint = MaterialTheme.colorScheme.error,
-                        )
-                    }
-                }
-            }
+                placeholder = "Mañana",
+            )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                OutlinedTextField(
+                NurseraTextField(
                     value = shift.startTime,
-                    onValueChange = { onUpdate(shift.copy(startTime = it)) },
-                    label = { Text("Inicio") },
-                    placeholder = { Text("HH:mm") },
+                    onValueChange = { executeIntent(EditHospitalIntent.UpdateNewShift(shift.copy(startTime = it))) },
+                    label = "Inicio",
+                    placeholder = "HH:mm",
                     isError = shift.startTimeError != null,
-                    supportingText =
-                        shift.startTimeError?.let { error ->
-                            { Text(error, color = MaterialTheme.colorScheme.error) }
-                        },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
+                    errorMessage = shift.startTimeError,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .onFocusChanged { focus ->
+                                if (!focus.isFocused) {
+                                    val autofilled = autofillTime(shift.startTime)
+                                    if (autofilled != shift.startTime) {
+                                        executeIntent(
+                                            EditHospitalIntent.UpdateNewShift(
+                                                shift.copy(
+                                                    startTime = autofilled,
+                                                ),
+                                            ),
+                                        )
+                                    }
+                                }
+                            },
                 )
-                OutlinedTextField(
+                NurseraTextField(
                     value = shift.endTime,
-                    onValueChange = { onUpdate(shift.copy(endTime = it)) },
-                    label = { Text("Fin") },
-                    placeholder = { Text("HH:mm") },
+                    onValueChange = { executeIntent(EditHospitalIntent.UpdateNewShift((shift.copy(endTime = it)))) },
+                    label = "Fin",
+                    placeholder = "HH:mm",
                     isError = shift.endTimeError != null,
-                    supportingText =
-                        shift.endTimeError?.let { error ->
-                            { Text(error, color = MaterialTheme.colorScheme.error) }
-                        },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
+                    errorMessage = shift.endTimeError,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .onFocusChanged { focus ->
+                                if (!focus.isFocused) {
+                                    val autofilled = autofillTime(shift.endTime)
+                                    if (autofilled != shift.endTime) {
+                                        executeIntent(
+                                            EditHospitalIntent.UpdateNewShift(
+                                                (shift.copy(endTime = autofilled)),
+                                            ),
+                                        )
+                                    }
+                                }
+                            },
                 )
             }
 
-            OutlinedTextField(
+            NurseraTextField(
                 value = shift.hourlyRate,
-                onValueChange = { onUpdate(shift.copy(hourlyRate = it)) },
-                label = { Text("€/hora") },
+                onValueChange = { executeIntent(EditHospitalIntent.UpdateNewShift(shift.copy(hourlyRate = it))) },
+                label = "€/hora",
                 isError = shift.hourlyRateError != null,
-                supportingText =
-                    shift.hourlyRateError?.let { error ->
-                        { Text(error, color = MaterialTheme.colorScheme.error) }
-                    },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
+                errorMessage = shift.hourlyRateError,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = "0",
+            )
+
+            NurseraCta(
+                label = "Guardar turno",
+                onClick = { executeIntent(EditHospitalIntent.SaveShift) },
+                isSaving = isSaving,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 4.dp, end = 4.dp, top = 4.dp),
             )
         }
     }
 }
 
+private fun autofillTime(value: String): String {
+    if (value.isBlank() || value.contains(":")) return value
+    val hour = value.toIntOrNull() ?: return value
+    if (hour < 0 || hour > 23) return value
+    return "%02d:00".format(hour)
+}
+
 @Preview(showBackground = true)
 @Composable
-private fun EditHospitalFormPreview() {
-    EditHospitalForm(
-        formState =
-            EditHospitalState.Form(
+private fun EditHospitalLoadedContentPreview() {
+    EditHospitalLoadedContent(
+        executeIntent = {},
+        state =
+            EditHospitalState.Loaded(
                 hospitalId = UUID.randomUUID(),
                 hospitalName = "Hospital La Paz",
                 hospitalColor = 0xFFDAF5F0.toInt(),
@@ -371,20 +371,62 @@ private fun EditHospitalFormPreview() {
                 irpf = "18",
                 existingShifts =
                     persistentListOf(
-                        ExistingShiftUiModel("Mañana", "08:00–15:00", "18.50€/h"),
-                        ExistingShiftUiModel("Tarde", "15:00–22:00", "19.00€/h"),
+                        ShiftUiModel(id = UUID.randomUUID(), "Mañana", "08:00–15:00", "18.50€/h"),
+                        ShiftUiModel(id = UUID.randomUUID(), "Tarde", "15:00–22:00", "19.00€/h"),
                     ),
-                newShifts =
-                    persistentListOf(
-                        ShiftFormUiState(name = "Noche", startTime = "22:00", endTime = "08:00", hourlyRate = "23.0"),
+                newShift =
+                    ShiftFormUiState(
+                        name = "Noche",
+                        startTime = "22:00",
+                        endTime = "08:00",
+                        hourlyRate = "23.0",
                     ),
-                isDirty = true,
+                // hasChanges = true,
                 canSave = true,
             ),
-        onUpdateIrpf = {},
-        onAddShift = {},
-        onRemoveShift = {},
-        onUpdateShift = { _, _ -> },
-        onSave = {},
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun EditHospitalLoadedContentWithSelectionPreview() {
+    EditHospitalLoadedContent(
+        executeIntent = {},
+        state =
+            EditHospitalState.Loaded(
+                hospitalId = UUID.randomUUID(),
+                hospitalName = "Hospital La Paz",
+                hospitalColor = 0xFFDAF5F0.toInt(),
+                originalIrpf = "15",
+                irpf = "18",
+                existingShifts =
+                    persistentListOf(
+                        ShiftUiModel(id = UUID.randomUUID(), "Mañana", "08:00–15:00", "18.50€/h"),
+                        ShiftUiModel(id = UUID.randomUUID(), "Tarde", "15:00–22:00", "19.00€/h"),
+                    ),
+                selectedShiftIndices = persistentSetOf(0),
+                // hasChanges = false,
+                canSave = false,
+            ),
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun EditHospitalLoadedContentSavingPreview() {
+    EditHospitalLoadedContent(
+        executeIntent = {},
+        state =
+            EditHospitalState.Loaded(
+                hospitalId = UUID.randomUUID(),
+                hospitalName = "Hospital La Paz",
+                hospitalColor = 0xFFDAF5F0.toInt(),
+                originalIrpf = "15",
+                irpf = "20",
+                existingShifts = persistentListOf(),
+                // hasChanges = true,
+                canSave = false,
+                isSaving = true,
+            ),
     )
 }

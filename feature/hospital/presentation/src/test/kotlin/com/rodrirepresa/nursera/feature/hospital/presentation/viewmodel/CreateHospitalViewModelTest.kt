@@ -239,7 +239,7 @@ class CreateHospitalViewModelTest {
                 advanceUntilIdle()
 
                 val saving = awaitItem()
-                assertTrue(saving.view is CreateHospitalState.Saving)
+                assertTrue((saving.view as CreateHospitalState.Loaded).isSaving)
 
                 val withSideEffect: State<CreateHospitalState, CreateHospitalSideEffect> = awaitItem()
                 assertTrue(withSideEffect.sideEffects.any { it is CreateHospitalSideEffect.NavigateBack })

@@ -8,14 +8,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.adidas.mvi.compose.MviContainer
+import com.rodrirepresa.nursera.core.ui.NurseraLoadingView
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.viewmodel.HospitalIntent
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.viewmodel.HospitalSideEffect
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.viewmodel.HospitalState
@@ -41,11 +40,7 @@ internal fun HospitalScreen(
     ) { state ->
         Scaffold { innerPadding ->
             when (state) {
-                is HospitalState.Loading -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
-                }
+                is HospitalState.Loading -> NurseraLoadingView()
 
                 is HospitalState.Loaded -> {
                     HospitalScreenLoaded(

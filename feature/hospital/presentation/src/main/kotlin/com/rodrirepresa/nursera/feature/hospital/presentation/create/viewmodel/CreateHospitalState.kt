@@ -13,7 +13,6 @@ sealed interface CreateHospitalState : LoggableState {
         val irpfError: String? = null,
         val shifts: ImmutableList<ShiftFormUiState> = persistentListOf(ShiftFormUiState()),
         val canSave: Boolean = false,
+        val isSaving: Boolean = false,
     ) : CreateHospitalState
-
-    data object Saving : CreateHospitalState
 }

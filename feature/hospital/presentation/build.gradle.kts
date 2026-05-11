@@ -16,6 +16,7 @@ dependencies {
     // Projects
     implementation(projects.feature.hospital.domain)
     implementation(projects.core.common)
+    implementation(projects.core.ui)
 
     // Libraries
     implementation(libs.adidas.mvi)

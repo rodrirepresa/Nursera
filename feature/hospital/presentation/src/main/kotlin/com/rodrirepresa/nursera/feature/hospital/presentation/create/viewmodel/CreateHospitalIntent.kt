@@ -4,7 +4,7 @@ import com.adidas.mvi.Intent
 import com.rodrirepresa.nursera.feature.hospital.presentation.create.model.ShiftFormUiState
 
 sealed interface CreateHospitalIntent : Intent {
-    data object Load : CreateHospitalIntent
+    data object NavigateBack : CreateHospitalIntent
 
     data class UpdateName(val value: String) : CreateHospitalIntent
 

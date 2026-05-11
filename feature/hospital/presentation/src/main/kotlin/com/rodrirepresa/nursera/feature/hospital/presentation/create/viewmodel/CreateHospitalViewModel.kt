@@ -45,7 +45,7 @@ internal class CreateHospitalViewModel
             intent: CreateHospitalIntent,
         ): Flow<StateTransform<State<CreateHospitalState, CreateHospitalSideEffect>>> =
             when (intent) {
-                is CreateHospitalIntent.Load -> executeLoad()
+                is CreateHospitalIntent.NavigateBack -> executeAddSideEffect(CreateHospitalSideEffect.NavigateBack)
                 is CreateHospitalIntent.UpdateName -> executeUpdateName(intent.value)
                 is CreateHospitalIntent.UpdateIrpf -> executeUpdateIrpf(intent.value)
                 is CreateHospitalIntent.AddShift -> executeAddShift()
@@ -54,29 +54,12 @@ internal class CreateHospitalViewModel
                 is CreateHospitalIntent.Save -> executeSave()
             }
 
-        private fun executeLoad(): Flow<StateTransform<State<CreateHospitalState, CreateHospitalSideEffect>>> =
-            flow {
-                emit(
-                    rebuildForm(
-                        name = "",
-                        irpf = "",
-                        shifts = listOf(ShiftFormUiState()),
-                    ),
-                )
-            }
-
         private fun executeUpdateName(
             value: String,
         ): Flow<StateTransform<State<CreateHospitalState, CreateHospitalSideEffect>>> =
             flow {
                 val form = currentForm() ?: return@flow
-                emit(
-                    rebuildForm(
-                        name = value.take(60),
-                        irpf = form.irpf,
-                        shifts = form.shifts,
-                    ),
-                )
+                emit(rebuildForm(name = value.take(30), irpf = form.irpf, shifts = form.shifts))
             }
 
         private fun executeUpdateIrpf(
@@ -127,6 +110,11 @@ internal class CreateHospitalViewModel
                 emit(CreateHospitalTransform.AddSideEffect(CreateHospitalSideEffect.NavigateBack))
             }
 
+        private fun executeAddSideEffect(
+            sideEffect: CreateHospitalSideEffect,
+        ): Flow<StateTransform<State<CreateHospitalState, CreateHospitalSideEffect>>> =
+            flow { emit(CreateHospitalTransform.AddSideEffect(sideEffect)) }
+
         private fun currentForm(): CreateHospitalState.Loaded? = state.value.view as? CreateHospitalState.Loaded
 
         private fun rebuildForm(
@@ -154,13 +142,13 @@ internal class CreateHospitalViewModel
 
 private fun validateName(name: String): String? =
     when {
-        name.isBlank() -> null // don't show error on empty until interaction
-        name.length > 60 -> "Máximo 60 caracteres"
+        name.isBlank() -> null
+        name.length > 30 -> "Máximo 30 caracteres"
         else -> null
     }
 
 private fun validateIrpf(value: String): String? {
-    if (value.isBlank()) return null // don't show error until user types
+    if (value.isBlank()) return null
     val f = value.toFloatOrNull() ?: return "Introduce un número válido"
     if (f < 0 || f > 100) return "El IRPF debe estar entre 0 y 100"
     return null
@@ -175,7 +163,7 @@ private fun ShiftFormUiState.withValidation(): ShiftFormUiState =
         nameError =
             when {
                 name.isEmpty() -> null
-                name.length > 60 -> "Máximo 60 caracteres"
+                name.length > 30 -> "Máximo 30 caracteres"
                 else -> null
             },
         startTimeError =
@@ -205,7 +193,7 @@ private fun ShiftFormUiState.withValidation(): ShiftFormUiState =
 
 private fun ShiftFormUiState.isValid(): Boolean =
     name.isNotBlank() &&
-        name.length <= 60 &&
+        name.length <= 30 &&
         isValidTime(startTime) &&
         isValidTime(endTime) &&
         startTime < endTime &&
