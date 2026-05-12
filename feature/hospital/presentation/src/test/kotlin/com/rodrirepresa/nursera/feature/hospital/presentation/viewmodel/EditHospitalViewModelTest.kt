@@ -182,7 +182,7 @@ class EditHospitalViewModelTest {
             loadForm()
             viewModel.state.test {
                 awaitItem()
-                viewModel.execute(EditHospitalIntent.AddShift)
+                viewModel.execute(EditHospitalIntent.ShowForm)
                 advanceUntilIdle()
                 val loaded = awaitItem().view as EditHospitalState.Loaded
                 assertEquals(1, loaded.newShift.size)
@@ -196,7 +196,7 @@ class EditHospitalViewModelTest {
             loadForm()
             viewModel.state.test {
                 awaitItem()
-                viewModel.execute(EditHospitalIntent.AddShift)
+                viewModel.execute(EditHospitalIntent.ShowForm)
                 advanceUntilIdle()
                 awaitItem()
                 viewModel.execute(
@@ -220,7 +220,7 @@ class EditHospitalViewModelTest {
             loadForm()
             viewModel.state.test {
                 awaitItem()
-                viewModel.execute(EditHospitalIntent.AddShift)
+                viewModel.execute(EditHospitalIntent.ShowForm)
                 advanceUntilIdle()
                 awaitItem()
                 viewModel.execute(
@@ -243,7 +243,7 @@ class EditHospitalViewModelTest {
             loadForm()
             viewModel.state.test {
                 awaitItem()
-                viewModel.execute(EditHospitalIntent.AddShift)
+                viewModel.execute(EditHospitalIntent.ShowForm)
                 advanceUntilIdle()
                 awaitItem()
                 viewModel.execute(EditHospitalIntent.RemoveShift(0))

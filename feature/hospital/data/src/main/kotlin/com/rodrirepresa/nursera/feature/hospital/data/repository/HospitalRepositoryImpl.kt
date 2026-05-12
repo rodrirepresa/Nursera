@@ -59,7 +59,7 @@ class HospitalRepositoryImpl
                 current.map { hospital ->
                     if (hospital.id == hospitalId) {
                         hospital.copy(
-                            shifts = hospital.shifts.filter { shift -> shift.id in shiftsIds },
+                            shifts = hospital.shifts.filter { shift -> shift.id !in shiftsIds },
                         )
                     } else {
                         hospital

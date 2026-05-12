@@ -2,6 +2,7 @@ package com.rodrirepresa.nursera.feature.hospital.presentation.edit.viewmodel
 
 import com.adidas.mvi.Intent
 import com.rodrirepresa.nursera.feature.hospital.presentation.create.model.ShiftFormUiState
+import java.util.UUID
 
 sealed interface EditHospitalIntent : Intent {
     data object Load : EditHospitalIntent
@@ -10,13 +11,11 @@ sealed interface EditHospitalIntent : Intent {
 
     data class UpdateIrpf(val value: String) : EditHospitalIntent
 
-    data object AddShift : EditHospitalIntent
+    data object ShowForm : EditHospitalIntent
 
     data class UpdateNewShift(val shift: ShiftFormUiState) : EditHospitalIntent
 
-    // data class RemoveShift(val index: Int) : EditHospitalIntent
-
-    data class ToggleExistingShiftSelection(val index: Int) : EditHospitalIntent
+    data class ToggleExistingShiftSelection(val shiftId: UUID) : EditHospitalIntent
 
     data object DeleteSelectedShifts : EditHospitalIntent
 

@@ -30,13 +30,15 @@ fun NurseraCta(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     isSaving: Boolean = false,
+    enabled: Boolean = true,
     backgroundColor: Color = Color(0xFFFF6B6B),
 ) {
+    val effectiveColor = if (enabled) backgroundColor else Color(0xFFCCCCCC)
     NeoBrutalistCard(
         modifier = modifier.height(56.dp),
-        backgroundColor = backgroundColor,
+        backgroundColor = effectiveColor,
         forcePressed = isSaving,
-        onClick = { if (!isSaving) onClick() },
+        onClick = { if (!isSaving && enabled) onClick() },
     ) {
         Row(
             horizontalArrangement = Arrangement.Center,
@@ -118,5 +120,15 @@ private fun NurseraCtaSavingPreview() {
         label = "Guardar cambios",
         onClick = {},
         isSaving = true,
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun NurseraCtaDisabledPreview() {
+    NurseraCta(
+        label = "Guardar cambios",
+        onClick = {},
+        enabled = false,
     )
 }

@@ -109,14 +109,12 @@ fun NurseraTextField(
                 },
             )
         }
-        if (isError && errorMessage != null) {
-            Text(
-                text = errorMessage,
-                style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFFB00020),
-                modifier = Modifier.padding(top = 4.dp, start = 4.dp),
-            )
-        }
+        Text(
+            text = if (isError && errorMessage != null) errorMessage else "",
+            style = MaterialTheme.typography.bodySmall,
+            color = Color(0xFFB00020),
+            modifier = Modifier.padding(top = 4.dp, start = 4.dp),
+        )
     }
 }
 

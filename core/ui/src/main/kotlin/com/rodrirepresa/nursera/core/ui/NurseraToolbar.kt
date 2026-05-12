@@ -84,3 +84,14 @@ private fun NurseraToolbarPreview() {
         iconColor = Color.White,
     )
 }
+
+@Preview(showBackground = true)
+@Composable
+private fun NurseraToolbarLongTitlePreview() {
+    NurseraToolbar(
+        title = "Hospital Universitario de la Princesa — Urgencias",
+        onNavigateBack = {},
+        iconColor = Color.White,
+        applyStatusBarPadding = false,
+    )
+}

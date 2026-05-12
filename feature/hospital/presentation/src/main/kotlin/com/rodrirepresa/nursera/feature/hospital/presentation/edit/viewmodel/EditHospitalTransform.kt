@@ -5,28 +5,43 @@ import com.adidas.mvi.transform.SideEffectTransform
 import com.adidas.mvi.transform.ViewTransform
 import com.rodrirepresa.nursera.feature.hospital.presentation.create.model.ShiftFormUiState
 import com.rodrirepresa.nursera.feature.hospital.presentation.edit.validators.validateIrpf
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.collections.immutable.toPersistentSet
+import java.util.UUID
 
 internal object EditHospitalTransform {
     data class ShowForm(
-        val hospitalId: java.util.UUID,
+        val hospitalId: UUID,
         val hospitalName: String,
         val hospitalColor: Int,
         val irpf: String,
-        val existingShifts: ImmutableList<ShiftUiModel>,
+        val existingShifts: List<ShiftUiModel>,
     ) : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
-        override fun mutate(currentState: EditHospitalState): EditHospitalState =
-            EditHospitalState.Loaded(
+        override fun mutate(currentState: EditHospitalState): EditHospitalState {
+            val previousLoaded = currentState as? EditHospitalState.Loaded
+            val validIds = existingShifts.map { it.id }.toSet()
+            val previousForm = previousLoaded?.shifts?.filterIsInstance<ShiftItem.Form>()?.firstOrNull()
+            val pendingForm = if (previousForm?.isVisible == true) previousForm else ShiftItem.Form()
+            val newShifts = (
+                listOf(pendingForm) +
+                    existingShifts.map { model ->
+                        val wasSelected =
+                            previousLoaded?.shifts
+                                ?.filterIsInstance<ShiftItem.Existing>()
+                                ?.find { it.model.id == model.id }
+                                ?.isSelected ?: false
+                        ShiftItem.Existing(model, isSelected = wasSelected && model.id in validIds)
+                    }
+            )
+            return EditHospitalState.Loaded(
                 hospitalId = hospitalId,
                 hospitalName = hospitalName,
                 hospitalColor = hospitalColor,
-                originalIrpf = irpf,
-                irpf = irpf,
-                existingShifts = existingShifts,
+                originalIrpf = previousLoaded?.originalIrpf ?: irpf,
+                irpf = previousLoaded?.irpf ?: irpf,
+                irpfError = previousLoaded?.irpfError,
+                shifts = (newShifts).toPersistentList(),
             )
+        }
     }
 
     object ShowError : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
@@ -45,52 +60,69 @@ internal object EditHospitalTransform {
         }
     }
 
-    data class UpdateForm(
-        val newShift: ShiftFormUiState?,
+    data class SetFormVisible(val isVisible: Boolean) : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
+        override fun mutate(currentState: EditHospitalState): EditHospitalState {
+            if (currentState !is EditHospitalState.Loaded) return currentState
+            return currentState.copy(
+                shifts =
+                    currentState.shifts.map { item ->
+                        if (item is ShiftItem.Form) item.copy(isVisible = isVisible) else item
+                    }.toPersistentList(),
+            )
+        }
+    }
+
+    data class UpdateFormShift(
+        val form: ShiftFormUiState,
         val canSave: Boolean,
     ) : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
         override fun mutate(currentState: EditHospitalState): EditHospitalState {
             if (currentState !is EditHospitalState.Loaded) return currentState
             return currentState.copy(
-                newShift = newShift,
-                canSave = canSave,
-                selectedShiftIndices = persistentSetOf(),
+                shifts =
+                    currentState.shifts.map { item ->
+                        if (item is ShiftItem.Form) item.copy(form = form, canSave = canSave) else item
+                    }.toPersistentList(),
+            )
+        }
+    }
+
+    data class SetFormSaving(val isSaving: Boolean) : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
+        override fun mutate(currentState: EditHospitalState): EditHospitalState {
+            if (currentState !is EditHospitalState.Loaded) return currentState
+            return currentState.copy(
+                shifts =
+                    currentState.shifts.map { item ->
+                        if (item is ShiftItem.Form) item.copy(isSaving = isSaving) else item
+                    }.toPersistentList(),
             )
         }
     }
 
     data class ToggleExistingShiftSelection(
-        val index: Int,
+        val shiftId: UUID,
     ) : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
         override fun mutate(currentState: EditHospitalState): EditHospitalState {
             if (currentState !is EditHospitalState.Loaded) return currentState
-            val updated =
-                currentState.selectedShiftIndices.toMutableSet().apply {
-                    if (contains(index)) remove(index) else add(index)
-                }
-            return currentState.copy(selectedShiftIndices = updated.toPersistentSet())
-        }
-    }
-
-    data class DeleteSelectedShifts(
-        private val shift: List<ShiftUiModel>,
-    ) : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
-        override fun mutate(currentState: EditHospitalState): EditHospitalState {
-            if (currentState !is EditHospitalState.Loaded) return currentState
-
             return currentState.copy(
-                existingShifts = shift.toPersistentList(),
-                selectedShiftIndices = kotlinx.collections.immutable.persistentSetOf(),
+                shifts =
+                    currentState.shifts.map { item ->
+                        if (item is ShiftItem.Existing && item.model.id == shiftId) {
+                            item.copy(isSelected = !item.isSelected)
+                        } else {
+                            item
+                        }
+                    }.toPersistentList(),
             )
         }
     }
 
-    data class Saving(
-        val isSaving: Boolean,
-    ) : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
+    object DeleteSelectedShifts : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
         override fun mutate(currentState: EditHospitalState): EditHospitalState {
             if (currentState !is EditHospitalState.Loaded) return currentState
-            return currentState.copy(isSaving = isSaving)
+            return currentState.copy(
+                shifts = currentState.shifts.filterNot { it is ShiftItem.Existing && it.isSelected }.toPersistentList(),
+            )
         }
     }
 
