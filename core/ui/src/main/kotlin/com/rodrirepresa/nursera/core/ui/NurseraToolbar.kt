@@ -31,9 +31,9 @@ import androidx.compose.ui.unit.sp
 fun NurseraToolbar(
     title: String,
     onNavigateBack: () -> Unit,
-    iconColor: Color = Color.White,
     modifier: Modifier = Modifier,
-    applyStatusBarPadding: Boolean = true,
+    iconColor: Color = Color.White,
+    applyStatusBarPadding: Boolean = false,
 ) {
     Row(
         modifier =
@@ -41,17 +41,18 @@ fun NurseraToolbar(
                 .fillMaxWidth()
                 .then(if (applyStatusBarPadding) Modifier.statusBarsPadding() else Modifier)
                 .height(56.dp)
-                .padding(horizontal = 8.dp, vertical = 8.dp),
+                .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start,
     ) {
-        NeoBrutalistIconButton(
+        NurseraIconButton(
             onClick = onNavigateBack,
-            backgroundColor = iconColor,
+            backgroundColor = Color(0xFFFFFCF5),
+            shadowOffset = 3.dp,
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Volver",
+                contentDescription = "back",
             )
         }
         Spacer(modifier = Modifier.width(12.dp))

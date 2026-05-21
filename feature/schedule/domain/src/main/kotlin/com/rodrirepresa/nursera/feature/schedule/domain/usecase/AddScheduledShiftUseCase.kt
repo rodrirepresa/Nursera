@@ -1,0 +1,14 @@
+package com.rodrirepresa.nursera.feature.schedule.domain.usecase
+
+import java.time.LocalDate
+import java.util.UUID
+
+interface AddScheduledShiftUseCase {
+    suspend operator fun invoke(
+        date: LocalDate,
+        hospitalId: UUID,
+        hospitalName: String,
+        hospitalColor: Int,
+        shiftName: String,
+    )
+}

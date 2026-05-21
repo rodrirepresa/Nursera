@@ -34,7 +34,7 @@ fun NurseraTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     isError: Boolean = false,
     errorMessage: String? = null,
-    backgroundColor: Color = Color.White,
+    backgroundColor: Color = Color(0xFFFFFCF5),
     shadowColor: Color = Color(0xFF1A1A1A),
     shadowOffset: Dp = 0.dp,
 ) {
@@ -55,7 +55,7 @@ fun NurseraTextField(
                     Modifier
                 },
         ) {
-            val borderColor = if (isError) Color(0xFFB00020) else shadowColor
+            val borderColor = if (isError) Color(0xFFE8736B) else shadowColor
             if (shadowOffset > 0.dp) {
                 Box(
                     modifier =
@@ -112,7 +112,7 @@ fun NurseraTextField(
         Text(
             text = if (isError && errorMessage != null) errorMessage else "",
             style = MaterialTheme.typography.bodySmall,
-            color = Color(0xFFB00020),
+            color = Color(0xFFE8736B),
             modifier = Modifier.padding(top = 4.dp, start = 4.dp),
         )
     }
@@ -141,43 +141,6 @@ private fun NurseraTextFieldEmptyPreview() {
 
 @Preview(showBackground = true)
 @Composable
-private fun NurseraTextFieldWithValuePreview() {
-    NurseraTextField(
-        value = "15",
-        onValueChange = {},
-        label = "IRPF",
-        suffix = PercentSuffix,
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun NurseraTextFieldWithShadowPreview() {
-    NurseraTextField(
-        value = "15",
-        onValueChange = {},
-        label = "IRPF",
-        shadowOffset = 4.dp,
-        backgroundColor = Color(0xFFF4D738),
-        suffix = PercentSuffix,
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun NurseraTextFieldErrorPreview() {
-    NurseraTextField(
-        value = "150",
-        onValueChange = {},
-        label = "IRPF",
-        isError = true,
-        errorMessage = "El IRPF debe estar entre 0 y 100",
-        suffix = PercentSuffix,
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
 private fun NurseraTextFieldErrorWithShadowPreview() {
     NurseraTextField(
         value = "150",
@@ -186,7 +149,6 @@ private fun NurseraTextFieldErrorWithShadowPreview() {
         isError = true,
         errorMessage = "El IRPF debe estar entre 0 y 100",
         shadowOffset = 4.dp,
-        backgroundColor = Color(0xFFF4D738),
         suffix = PercentSuffix,
     )
 }

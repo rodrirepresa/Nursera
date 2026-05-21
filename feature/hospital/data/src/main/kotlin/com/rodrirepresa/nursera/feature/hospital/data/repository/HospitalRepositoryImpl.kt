@@ -122,135 +122,26 @@ class HospitalRepositoryImpl
                     irpf = 15.0f,
                     shifts =
                         listOf(
-                            ShiftType(
-                                UUID.randomUUID(),
-                                "Mañana",
-                                LocalTime.of(8, 0),
-                                LocalTime.of(15, 0),
-                                18.50,
-                            ),
-                            ShiftType(
-                                UUID.randomUUID(),
-                                "Tarde",
-                                LocalTime.of(15, 0),
-                                LocalTime.of(22, 0),
-                                19.00,
-                            ),
-                            ShiftType(
-                                UUID.randomUUID(),
-                                "Noche",
-                                LocalTime.of(22, 0),
-                                LocalTime.of(8, 0),
-                                23.00,
-                            ),
-                            ShiftType(
-                                UUID.randomUUID(),
-                                "Noche",
-                                LocalTime.of(22, 0),
-                                LocalTime.of(8, 0),
-                                23.00,
-                            ),
-                            ShiftType(
-                                UUID.randomUUID(),
-                                "Noche",
-                                LocalTime.of(22, 0),
-                                LocalTime.of(8, 0),
-                                23.00,
-                            ),
-                            ShiftType(
-                                UUID.randomUUID(),
-                                "Noche",
-                                LocalTime.of(22, 0),
-                                LocalTime.of(8, 0),
-                                23.00,
-                            ),
-                            ShiftType(
-                                UUID.randomUUID(),
-                                "Noche",
-                                LocalTime.of(22, 0),
-                                LocalTime.of(8, 0),
-                                23.00,
-                            ),
-                            ShiftType(
-                                UUID.randomUUID(),
-                                "Noche",
-                                LocalTime.of(22, 0),
-                                LocalTime.of(8, 0),
-                                23.00,
-                            ),
-                            ShiftType(
-                                UUID.randomUUID(),
-                                "Noche",
-                                LocalTime.of(22, 0),
-                                LocalTime.of(8, 0),
-                                23.00,
-                            ),
+                            ShiftType(UUID.randomUUID(), "Mañana", LocalTime.of(8, 0), LocalTime.of(15, 0), 18.50),
+                            ShiftType(UUID.randomUUID(), "Tarde", LocalTime.of(15, 0), LocalTime.of(22, 0), 19.00),
+                            ShiftType(UUID.randomUUID(), "Noche", LocalTime.of(22, 0), LocalTime.of(8, 0), 23.00),
                         ),
                 ),
                 Hospital(
                     id = UUID.randomUUID(),
                     name = "Hospital Gregorio Marañón",
-                    color = 0xFFFDFDF6.toInt(),
+                    color = 0xFF90CAF9.toInt(),
                     irpf = 17.5f,
                     shifts =
                         listOf(
-                            ShiftType(
-                                UUID.randomUUID(),
-                                "Mañana",
-                                LocalTime.of(8, 0),
-                                LocalTime.of(15, 0),
-                                17.75,
-                            ),
-                            ShiftType(
-                                UUID.randomUUID(),
-                                "Noche",
-                                LocalTime.of(22, 0),
-                                LocalTime.of(8, 0),
-                                22.50,
-                            ),
+                            ShiftType(UUID.randomUUID(), "Mañana", LocalTime.of(8, 0), LocalTime.of(15, 0), 17.75),
+                            ShiftType(UUID.randomUUID(), "Noche", LocalTime.of(22, 0), LocalTime.of(8, 0), 22.50),
                         ),
                 ),
                 Hospital(
                     id = UUID.randomUUID(),
                     name = "Clínica Universidad de Navarra",
-                    color = 0xFFFCDFFF.toInt(),
-                    irpf = 20.0f,
-                    shifts =
-                        listOf(
-                            ShiftType(
-                                UUID.randomUUID(),
-                                "Mañana",
-                                LocalTime.of(8, 0),
-                                LocalTime.of(15, 0),
-                                21.00,
-                            ),
-                            ShiftType(
-                                UUID.randomUUID(),
-                                "Tarde",
-                                LocalTime.of(15, 0),
-                                LocalTime.of(22, 0),
-                                21.50,
-                            ),
-                            ShiftType(
-                                UUID.randomUUID(),
-                                "Noche",
-                                LocalTime.of(22, 0),
-                                LocalTime.of(8, 0),
-                                26.00,
-                            ),
-                            ShiftType(
-                                UUID.randomUUID(),
-                                "Fin de semana",
-                                LocalTime.of(8, 0),
-                                LocalTime.of(20, 0),
-                                28.00,
-                            ),
-                        ),
-                ),
-                Hospital(
-                    id = UUID.randomUUID(),
-                    name = "Clínica Universidad de Navarra",
-                    color = 0xFFF8D6B3.toInt(),
+                    color = 0xFFC5A3FF.toInt(),
                     irpf = 20.0f,
                     shifts =
                         listOf(
@@ -268,15 +159,38 @@ class HospitalRepositoryImpl
                 ),
                 Hospital(
                     id = UUID.randomUUID(),
-                    name = "Hospital Gregorio Marañón",
-                    color = 0xFFFDFDF6.toInt(),
-                    irpf = 17.5f,
-                    shifts = emptyList(),
+                    name = "Hospital Quirón",
+                    color = 0xFFFFCBA4.toInt(),
+                    irpf = 20.0f,
+                    shifts =
+                        listOf(
+                            ShiftType(UUID.randomUUID(), "Mañana", LocalTime.of(8, 0), LocalTime.of(15, 0), 21.00),
+                            ShiftType(UUID.randomUUID(), "Tarde", LocalTime.of(15, 0), LocalTime.of(22, 0), 21.50),
+                            ShiftType(UUID.randomUUID(), "Noche", LocalTime.of(22, 0), LocalTime.of(8, 0), 26.00),
+                            ShiftType(
+                                UUID.randomUUID(),
+                                "Fin de semana",
+                                LocalTime.of(8, 0),
+                                LocalTime.of(20, 0),
+                                28.00,
+                            ),
+                        ),
                 ),
                 Hospital(
                     id = UUID.randomUUID(),
-                    name = "Hospital La Paz",
-                    color = 0xFFDAF5F0.toInt(),
+                    name = "Hospital La Fe",
+                    color = 0xFFFF8FAB.toInt(),
+                    irpf = 17.5f,
+                    shifts =
+                        listOf(
+                            ShiftType(UUID.randomUUID(), "Mañana", LocalTime.of(8, 0), LocalTime.of(15, 0), 18.00),
+                            ShiftType(UUID.randomUUID(), "Noche", LocalTime.of(22, 0), LocalTime.of(8, 0), 23.00),
+                        ),
+                ),
+                Hospital(
+                    id = UUID.randomUUID(),
+                    name = "Hospital Ramón y Cajal",
+                    color = 0xFFFFE566.toInt(),
                     irpf = 15.0f,
                     shifts =
                         listOf(

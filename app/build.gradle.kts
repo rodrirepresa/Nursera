@@ -25,7 +25,8 @@ dependencies {
     implementation(projects.core.common)
     implementation(projects.feature.hospital.data)
     implementation(projects.feature.hospital.presentation)
-    implementation(projects.feature.favorites.presentation)
+    implementation(projects.feature.schedule.data)
+    implementation(projects.feature.schedule.presentation)
     implementation(projects.feature.profile.presentation)
 
     // Libraries

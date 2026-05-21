@@ -43,9 +43,7 @@ internal class HospitalViewModel
             reducer.executeIntent(intent)
         }
 
-        private fun executeIntent(
-            intent: HospitalIntent,
-        ): Flow<StateTransform<State<HospitalState, HospitalSideEffect>>> =
+        private fun executeIntent(intent: HospitalIntent): Flow<StateTransform<State<HospitalState, HospitalSideEffect>>> =
             when (intent) {
                 is HospitalIntent.Load -> executeLoad()
                 is HospitalIntent.OpenHospitalDetail ->
@@ -60,9 +58,7 @@ internal class HospitalViewModel
                 HospitalTransform.ShowHospitals(hospitals.map { it.toUiModel() })
             }
 
-        private fun executeAddSideEffect(
-            sideEffect: HospitalSideEffect,
-        ): Flow<StateTransform<State<HospitalState, HospitalSideEffect>>> =
+        private fun executeAddSideEffect(sideEffect: HospitalSideEffect): Flow<StateTransform<State<HospitalState, HospitalSideEffect>>> =
             flow {
                 emit(HospitalTransform.AddSideEffect(sideEffect))
             }

@@ -4,15 +4,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavDestination
@@ -21,14 +20,16 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.rodrirepresa.nursera.feature.favorites.presentation.navigation.FavoritesRoute
-import com.rodrirepresa.nursera.feature.favorites.presentation.navigation.favoritesScreen
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.navigation.HospitalGraph
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.navigation.hospitalGraph
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.navigation.isHospitalTabRoot
 import com.rodrirepresa.nursera.feature.profile.presentation.navigation.ProfileRoute
 import com.rodrirepresa.nursera.feature.profile.presentation.navigation.profileScreen
-import com.rodrirepresa.nursera.ui.NurseraNavBar
+import com.rodrirepresa.nursera.feature.schedule.presentation.navigation.ScheduleRoute
+import com.rodrirepresa.nursera.feature.schedule.presentation.navigation.scheduleScreen
+import com.rodrirepresa.nursera.ui.NurseraNavBar1
+import com.rodrirepresa.nursera.ui.NurseraNavBar2
+import com.rodrirepresa.nursera.ui.NurseraNavBar4
 import com.rodrirepresa.nursera.ui.theme.NurseraTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.reflect.KClass
@@ -53,7 +54,7 @@ enum class TopLevelDestination(
     val routeClass: KClass<*>,
 ) {
     HOSPITAL("Hospital", Icons.Default.Home, HospitalGraph, HospitalGraph::class),
-    FAVORITES("Favorites", Icons.Default.Favorite, FavoritesRoute, FavoritesRoute::class),
+    SCHEDULE("Schedule", Icons.Default.Favorite, ScheduleRoute, ScheduleRoute::class),
     PROFILE("Profile", Icons.Default.AccountBox, ProfileRoute, ProfileRoute::class),
 }
 
@@ -63,41 +64,42 @@ fun NurseraApp() {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination: NavDestination? = currentBackStackEntry?.destination
 
-    // Full-screen box — content fills edge-to-edge, nav bar overlays at the bottom
-    Box(modifier = Modifier.fillMaxSize()) {
+    val isTopLevel = currentDestination.isHospitalTabRoot() ||
+        currentDestination?.hasRoute(ScheduleRoute::class) == true ||
+        currentDestination?.hasRoute(ProfileRoute::class) == true
+
+    Scaffold(
+        bottomBar = {
+            if (isTopLevel) {
+                NurseraNavBar4(
+                    destinations = TopLevelDestination.entries,
+                    isSelected = { destination ->
+                        when (destination) {
+                            TopLevelDestination.HOSPITAL -> currentDestination.isHospitalTabRoot()
+                            else -> currentDestination?.hasRoute(destination.routeClass) == true
+                        }
+                    },
+                    onDestinationClick = { destination ->
+                        navController.navigate(destination.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                )
+            }
+        },
+    ) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = HospitalGraph,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.padding(innerPadding),
         ) {
             hospitalGraph(navController)
-            favoritesScreen()
+            scheduleScreen()
             profileScreen()
-        }
-
-        val isTopLevel = currentDestination.isHospitalTabRoot() ||
-            currentDestination?.hasRoute(FavoritesRoute::class) == true ||
-            currentDestination?.hasRoute(ProfileRoute::class) == true
-        if (isTopLevel) {
-            NurseraNavBar(
-                destinations = TopLevelDestination.entries,
-                isSelected = { destination ->
-                    when (destination) {
-                        TopLevelDestination.HOSPITAL -> currentDestination.isHospitalTabRoot()
-                        else -> currentDestination?.hasRoute(destination.routeClass) == true
-                    }
-                },
-                onDestinationClick = { destination ->
-                    navController.navigate(destination.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                },
-                modifier = Modifier.align(Alignment.BottomCenter),
-            )
         }
     }
 }

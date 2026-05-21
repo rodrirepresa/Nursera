@@ -18,10 +18,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rodrirepresa.nursera.core.ui.NeoBrutalistCard
-import com.rodrirepresa.nursera.core.ui.NeoBrutalistChip
+import com.rodrirepresa.nursera.core.ui.NurseraCard
+import com.rodrirepresa.nursera.core.ui.NurseraChip
+import com.rodrirepresa.nursera.core.ui.darken
+import java.util.UUID
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -29,7 +32,7 @@ internal fun HospitalCard(
     hospital: HospitalUiModel,
     onHospitalClick: () -> Unit,
 ) {
-    NeoBrutalistCard(
+    NurseraCard(
         modifier = Modifier.fillMaxWidth(),
         backgroundColor = Color(hospital.color),
         onClick = onHospitalClick,
@@ -50,6 +53,7 @@ internal fun HospitalCard(
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
+                    color = Color(hospital.color).darken(),
                 )
 
                 val label =
@@ -64,6 +68,7 @@ internal fun HospitalCard(
                     fontWeight = FontWeight.Normal,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
+                    color = Color(hospital.color).darken(),
                 )
 
                 FlowRow(
@@ -71,7 +76,7 @@ internal fun HospitalCard(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    NeoBrutalistChip(
+                    NurseraChip(
                         backgroundColor = Color(0xFFF4D738),
                     ) {
                         Text(
@@ -80,6 +85,7 @@ internal fun HospitalCard(
                             lineHeight = 14.sp,
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Bold,
+                            color = Color(0xFFF4D738).darken(),
                         )
                     }
                 }
@@ -87,7 +93,26 @@ internal fun HospitalCard(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
+                tint = Color(hospital.color).darken(),
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun HospitalCardPreview() {
+    MaterialTheme {
+        HospitalCard(
+            hospital =
+                HospitalUiModel(
+                    id = UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
+                    name = "Hospital Central",
+                    color = 0xFFE3F2FD.toInt(),
+                    irpf = "15%",
+                    shifts = emptyList(),
+                ),
+            onHospitalClick = {},
+        )
     }
 }

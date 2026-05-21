@@ -13,7 +13,6 @@ internal fun ShiftType.toShiftUiModel(): ShiftUiModel =
         hourlyRate = "${"%.2f".format(hourlyRate)}€/h",
     )
 
-internal fun Float.toFormattedIrpf(): String =
-    if (this == this.toLong().toFloat()) this.toLong().toString() else this.toString()
+internal fun Float.toFormattedIrpf(): String = if (this == this.toLong().toFloat()) this.toLong().toString() else this.toString()
 
 internal fun String.toLocalTime(): LocalTime = LocalTime.parse(this, timeFormatter)

@@ -1,6 +1,7 @@
 package com.rodrirepresa.nursera.feature.hospital.presentation.edit.viewmodel
 
 import com.adidas.mvi.LoggableState
+import com.rodrirepresa.nursera.feature.hospital.presentation.create.model.ShiftFormUiState
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import java.util.UUID
@@ -18,5 +19,8 @@ sealed interface EditHospitalState : LoggableState {
         val irpf: String = "",
         val irpfError: String? = null,
         val shifts: ImmutableList<ShiftItem> = persistentListOf(),
+        val shiftForm: ShiftFormUiState? = null,
+        val isShiftFormSaving: Boolean = false,
+        val canSaveShiftForm: Boolean = false,
     ) : EditHospitalState
 }

@@ -216,6 +216,7 @@ Rules:
 - Use `.onStart { emit(…) }` to emit a "saving started" transform before the async operation
 - Read current state synchronously via `state.value.view as? [Feature]State.Loaded`
 - Use `catch { emit(EditHospitalTransform.ShowError) }` on observable flows
+- **No extra class-level properties** — the ViewModel body contains only `reducer`, `state`, `init`, `execute`, and private `execute*` functions. Any derived value (e.g. a route arg UUID) may be stored as a `private val` computed once from constructor params, but mutable fields (`MutableStateFlow`, `MutableSharedFlow`, etc.) are forbidden.
 
 #### Screen
 
@@ -317,7 +318,7 @@ Nursera/
     │   ├── data/              # nursera.kotlin.library
     │   ├── domain/            # nursera.kotlin.library
     │   └── presentation/      # nursera.android.library.compose + nursera.android.library.hilt
-    ├── favorites/
+    ├── schedule/
     │   ├── data/              # nursera.kotlin.library
     │   ├── domain/            # nursera.kotlin.library
     │   └── presentation/      # nursera.android.library.compose
@@ -582,3 +583,4 @@ Always use type-safe project accessors (`projects.*`) — never `project(":some:
 - Import `[Feature]Screen` or `[Feature]ViewModel` from `:app` — use the graph extension function only
 - Import domain models (`feature.*.domain.model.*`) in Composables, State, or Transform classes — map to UI models first
 - Use `List` in State — always use `ImmutableList` with `persistentListOf()`
+- Use the word **Cache** in Transform or Intent names — use descriptive domain names instead (e.g. `AddMonth`, `SetDisplayedMonth`)

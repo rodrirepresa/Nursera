@@ -1,0 +1,99 @@
+package com.rodrirepresa.nursera.feature.schedule.data.repository
+
+import com.rodrirepresa.nursera.feature.schedule.domain.model.ScheduledShift
+import com.rodrirepresa.nursera.feature.schedule.domain.repository.ScheduleRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
+import java.time.LocalDate
+import java.time.YearMonth
+import java.util.UUID
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class ScheduleRepositoryImpl
+    @Inject
+    constructor() : ScheduleRepository {
+        private val shiftsFlow = MutableStateFlow(seedShifts())
+
+        override fun observeMonth(month: YearMonth): Flow<List<ScheduledShift>> =
+            shiftsFlow.map { all -> all.filter { YearMonth.from(it.date) == month } }
+
+        override suspend fun addShift(
+            date: LocalDate,
+            hospitalId: UUID,
+            hospitalName: String,
+            hospitalColor: Int,
+            shiftName: String,
+        ) {
+            shiftsFlow.update { current ->
+                current +
+                    ScheduledShift(
+                        id = UUID.randomUUID(),
+                        date = date,
+                        hospitalId = hospitalId,
+                        hospitalName = hospitalName,
+                        hospitalColor = hospitalColor,
+                        shiftName = shiftName,
+                    )
+            }
+        }
+
+        private fun seedShifts(): List<ScheduledShift> {
+            val now = YearMonth.now()
+            val lapaz = UUID.randomUUID()
+            val maranon = UUID.randomUUID()
+            val navarra = UUID.randomUUID()
+            val quiron = UUID.randomUUID()
+            val lafe = UUID.randomUUID()
+            val ramon = UUID.randomUUID()
+            return buildList {
+                // Hospital La Paz — turquesa
+                add(shift(now.atDay(2), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Mañana"))
+                add(shift(now.atDay(5), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Tarde"))
+                add(shift(now.atDay(9), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Noche"))
+                add(shift(now.atDay(12), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Mañana"))
+                add(shift(now.atDay(16), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Tarde"))
+                add(shift(now.atDay(23), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Mañana"))
+                add(shift(now.atDay(26), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Tarde"))
+                // Hospital Gregorio Marañón — azul claro
+                add(shift(now.atDay(3), maranon, "H. G. Marañón", 0xFF90CAF9.toInt(), "Mañana"))
+                add(shift(now.atDay(7), maranon, "H. G. Marañón", 0xFF90CAF9.toInt(), "Noche"))
+                add(shift(now.atDay(14), maranon, "H. G. Marañón", 0xFF90CAF9.toInt(), "Mañana"))
+                // add(shift(now.atDay(21), maranon, "H. G. Marañón", 0xFF90CAF9.toInt(), "Noche"))
+                add(shift(now.atDay(28), maranon, "H. G. Marañón", 0xFF90CAF9.toInt(), "Mañana"))
+                // Clínica Universidad de Navarra — morado
+                add(shift(now.atDay(5), navarra, "C. Navarra", 0xFFC5A3FF.toInt(), "Fin de semana"))
+                add(shift(now.atDay(12), navarra, "C. Navarra", 0xFFC5A3FF.toInt(), "Tarde"))
+                add(shift(now.atDay(26), navarra, "C. Navarra", 0xFFC5A3FF.toInt(), "Fin de semana"))
+                // Hospital Quirón — melocotón
+                add(shift(now.atDay(4), quiron, "Hospital Quirón", 0xFFFFCBA4.toInt(), "Mañana"))
+                add(shift(now.atDay(11), quiron, "Hospital Quirón", 0xFFFFCBA4.toInt(), "Tarde"))
+                add(shift(now.atDay(25), quiron, "Hospital Quirón", 0xFFFFCBA4.toInt(), "Fin de semana"))
+                // Hospital La Fe — rosa — solapado con La Paz para probar stacking
+                add(shift(now.atDay(9), lafe, "Hospital La Fe", 0xFFFF8FAB.toInt(), "Mañana"))
+                add(shift(now.atDay(16), lafe, "Hospital La Fe", 0xFFFF8FAB.toInt(), "Noche"))
+                add(shift(now.atDay(23), lafe, "Hospital La Fe", 0xFFFF8FAB.toInt(), "Mañana"))
+                // Hospital Ramón y Cajal — amarillo — solapado con Navarra para probar stacking
+                add(shift(now.atDay(5), ramon, "H. Ramón y Cajal", 0xFFFFE566.toInt(), "Mañana"))
+                add(shift(now.atDay(12), ramon, "H. Ramón y Cajal", 0xFFFFE566.toInt(), "Tarde"))
+            }.filter { it.date.year == now.year && it.date.monthValue == now.monthValue }
+        }
+
+        private fun shift(
+            date: LocalDate,
+            hospitalId: UUID,
+            hospitalName: String,
+            hospitalColor: Int,
+            shiftName: String,
+        ) = ScheduledShift(
+            id = UUID.randomUUID(),
+            date = date,
+            hospitalId = hospitalId,
+            hospitalName = hospitalName,
+            hospitalColor = hospitalColor,
+            shiftName = shiftName,
+        )
+    }

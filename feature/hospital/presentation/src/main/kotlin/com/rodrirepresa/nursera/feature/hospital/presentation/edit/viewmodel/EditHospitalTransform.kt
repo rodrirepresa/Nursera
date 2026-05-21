@@ -9,7 +9,7 @@ import kotlinx.collections.immutable.toPersistentList
 import java.util.UUID
 
 internal object EditHospitalTransform {
-    data class ShowForm(
+    data class ShowLoaded(
         val hospitalId: UUID,
         val hospitalName: String,
         val hospitalColor: Int,
@@ -17,29 +17,28 @@ internal object EditHospitalTransform {
         val existingShifts: List<ShiftUiModel>,
     ) : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
         override fun mutate(currentState: EditHospitalState): EditHospitalState {
-            val previousLoaded = currentState as? EditHospitalState.Loaded
+            val previous = currentState as? EditHospitalState.Loaded
             val validIds = existingShifts.map { it.id }.toSet()
-            val previousForm = previousLoaded?.shifts?.filterIsInstance<ShiftItem.Form>()?.firstOrNull()
-            val pendingForm = if (previousForm?.isVisible == true) previousForm else ShiftItem.Form()
-            val newShifts = (
-                listOf(pendingForm) +
-                    existingShifts.map { model ->
-                        val wasSelected =
-                            previousLoaded?.shifts
-                                ?.filterIsInstance<ShiftItem.Existing>()
-                                ?.find { it.model.id == model.id }
-                                ?.isSelected ?: false
-                        ShiftItem.Existing(model, isSelected = wasSelected && model.id in validIds)
-                    }
-            )
+            val newShifts =
+                existingShifts.map { model ->
+                    val wasSelected =
+                        previous?.shifts
+                            ?.filterIsInstance<ShiftItem.Existing>()
+                            ?.find { it.model.id == model.id }
+                            ?.isSelected ?: false
+                    ShiftItem.Existing(model, isSelected = wasSelected && model.id in validIds)
+                }
             return EditHospitalState.Loaded(
                 hospitalId = hospitalId,
                 hospitalName = hospitalName,
                 hospitalColor = hospitalColor,
-                originalIrpf = previousLoaded?.originalIrpf ?: irpf,
-                irpf = previousLoaded?.irpf ?: irpf,
-                irpfError = previousLoaded?.irpfError,
-                shifts = (newShifts).toPersistentList(),
+                originalIrpf = previous?.originalIrpf ?: irpf,
+                irpf = previous?.irpf ?: irpf,
+                irpfError = previous?.irpfError,
+                shifts = newShifts.toPersistentList(),
+                shiftForm = previous?.shiftForm,
+                isShiftFormSaving = previous?.isShiftFormSaving ?: false,
+                canSaveShiftForm = previous?.canSaveShiftForm ?: false,
             )
         }
     }
@@ -53,22 +52,21 @@ internal object EditHospitalTransform {
     ) : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
         override fun mutate(currentState: EditHospitalState): EditHospitalState {
             if (currentState !is EditHospitalState.Loaded) return currentState
-            return currentState.copy(
-                irpf = irpf,
-                irpfError = validateIrpf(irpf),
-            )
+            return currentState.copy(irpf = irpf, irpfError = validateIrpf(irpf))
         }
     }
 
-    data class SetFormVisible(val isVisible: Boolean) : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
+    object OpenShiftSheet : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
         override fun mutate(currentState: EditHospitalState): EditHospitalState {
             if (currentState !is EditHospitalState.Loaded) return currentState
-            return currentState.copy(
-                shifts =
-                    currentState.shifts.map { item ->
-                        if (item is ShiftItem.Form) item.copy(isVisible = isVisible) else item
-                    }.toPersistentList(),
-            )
+            return currentState.copy(shiftForm = ShiftFormUiState(), canSaveShiftForm = false)
+        }
+    }
+
+    object DismissShiftSheet : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
+        override fun mutate(currentState: EditHospitalState): EditHospitalState {
+            if (currentState !is EditHospitalState.Loaded) return currentState
+            return currentState.copy(shiftForm = null, isShiftFormSaving = false, canSaveShiftForm = false)
         }
     }
 
@@ -78,24 +76,14 @@ internal object EditHospitalTransform {
     ) : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
         override fun mutate(currentState: EditHospitalState): EditHospitalState {
             if (currentState !is EditHospitalState.Loaded) return currentState
-            return currentState.copy(
-                shifts =
-                    currentState.shifts.map { item ->
-                        if (item is ShiftItem.Form) item.copy(form = form, canSave = canSave) else item
-                    }.toPersistentList(),
-            )
+            return currentState.copy(shiftForm = form, canSaveShiftForm = canSave)
         }
     }
 
-    data class SetFormSaving(val isSaving: Boolean) : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
+    data class SetShiftFormSaving(val isSaving: Boolean) : ViewTransform<EditHospitalState, EditHospitalSideEffect>() {
         override fun mutate(currentState: EditHospitalState): EditHospitalState {
             if (currentState !is EditHospitalState.Loaded) return currentState
-            return currentState.copy(
-                shifts =
-                    currentState.shifts.map { item ->
-                        if (item is ShiftItem.Form) item.copy(isSaving = isSaving) else item
-                    }.toPersistentList(),
-            )
+            return currentState.copy(isShiftFormSaving = isSaving)
         }
     }
 
@@ -129,7 +117,6 @@ internal object EditHospitalTransform {
     data class AddSideEffect(
         val sideEffect: EditHospitalSideEffect,
     ) : SideEffectTransform<EditHospitalState, EditHospitalSideEffect>() {
-        override fun mutate(sideEffects: SideEffects<EditHospitalSideEffect>): SideEffects<EditHospitalSideEffect> =
-            sideEffects.add(sideEffect)
+        override fun mutate(sideEffects: SideEffects<EditHospitalSideEffect>): SideEffects<EditHospitalSideEffect> = sideEffects.add(sideEffect)
     }
 }

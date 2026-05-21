@@ -11,7 +11,9 @@ sealed interface EditHospitalIntent : Intent {
 
     data class UpdateIrpf(val value: String) : EditHospitalIntent
 
-    data object ShowForm : EditHospitalIntent
+    data object OpenShiftSheet : EditHospitalIntent
+
+    data object DismissShiftSheet : EditHospitalIntent
 
     data class UpdateNewShift(val shift: ShiftFormUiState) : EditHospitalIntent
 

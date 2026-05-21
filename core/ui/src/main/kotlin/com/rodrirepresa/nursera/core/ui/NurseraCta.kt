@@ -34,7 +34,7 @@ fun NurseraCta(
     backgroundColor: Color = Color(0xFFFF6B6B),
 ) {
     val effectiveColor = if (enabled) backgroundColor else Color(0xFFCCCCCC)
-    NeoBrutalistCard(
+    NurseraCard(
         modifier = modifier.height(56.dp),
         backgroundColor = effectiveColor,
         forcePressed = isSaving,
@@ -46,7 +46,7 @@ fun NurseraCta(
             modifier = Modifier.fillMaxWidth(),
         ) {
             if (isSaving) {
-                JumpingDots()
+                JumpingDots(color = backgroundColor)
             } else {
                 Text(
                     text = label,
@@ -54,6 +54,7 @@ fun NurseraCta(
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
+                    color = if (enabled) backgroundColor.darken() else Color(0xFFCCCCCC).darken(),
                 )
             }
         }
@@ -61,7 +62,7 @@ fun NurseraCta(
 }
 
 @Composable
-private fun JumpingDots() {
+private fun JumpingDots(color: Color) {
     val transition = rememberInfiniteTransition(label = "jumpingDots")
 
     val offsets =
@@ -99,6 +100,7 @@ private fun JumpingDots() {
                     Modifier
                         .offset(y = offset.dp)
                         .padding(horizontal = 2.dp),
+                color = color.darken(),
             )
         }
     }

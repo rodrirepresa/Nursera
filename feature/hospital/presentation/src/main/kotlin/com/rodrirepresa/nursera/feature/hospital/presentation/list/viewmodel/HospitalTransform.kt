@@ -10,14 +10,12 @@ internal object HospitalTransform {
     data class ShowHospitals(
         val hospitals: List<HospitalUiModel>,
     ) : ViewTransform<HospitalState, HospitalSideEffect>() {
-        override fun mutate(currentState: HospitalState): HospitalState =
-            HospitalState.Loaded(hospitals.toPersistentList())
+        override fun mutate(currentState: HospitalState): HospitalState = HospitalState.Loaded(hospitals.toPersistentList())
     }
 
     data class AddSideEffect(
         val sideEffect: HospitalSideEffect,
     ) : SideEffectTransform<HospitalState, HospitalSideEffect>() {
-        override fun mutate(sideEffects: SideEffects<HospitalSideEffect>): SideEffects<HospitalSideEffect> =
-            sideEffects.add(sideEffect)
+        override fun mutate(sideEffects: SideEffects<HospitalSideEffect>): SideEffects<HospitalSideEffect> = sideEffects.add(sideEffect)
     }
 }

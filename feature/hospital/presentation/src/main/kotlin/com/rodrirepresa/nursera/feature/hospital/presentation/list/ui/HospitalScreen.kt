@@ -8,12 +8,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Scaffold
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.adidas.mvi.compose.MviContainer
+import com.rodrirepresa.nursera.core.ui.NurseraHeader
 import com.rodrirepresa.nursera.core.ui.NurseraLoadingView
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.viewmodel.HospitalIntent
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.viewmodel.HospitalSideEffect
@@ -38,17 +40,14 @@ internal fun HospitalScreen(
             )
         },
     ) { state ->
-        Scaffold { innerPadding ->
-            when (state) {
-                is HospitalState.Loading -> NurseraLoadingView()
+        when (state) {
+            is HospitalState.Loading -> NurseraLoadingView()
 
-                is HospitalState.Loaded -> {
-                    HospitalScreenLoaded(
-                        innerPadding = innerPadding,
-                        hospitalList = state.hospitals,
-                        executeIntent = viewModel::execute,
-                    )
-                }
+            is HospitalState.Loaded -> {
+                HospitalScreenLoaded(
+                    hospitalList = state.hospitals,
+                    executeIntent = viewModel::execute,
+                )
             }
         }
     }
@@ -56,20 +55,10 @@ internal fun HospitalScreen(
 
 @Composable
 private fun HospitalScreenLoaded(
-    innerPadding: PaddingValues,
     hospitalList: ImmutableList<HospitalUiModel>,
     executeIntent: (HospitalIntent) -> Unit,
 ) {
-    Column(
-        modifier =
-            Modifier
-                .padding(innerPadding)
-                .padding(
-                    start = 16.dp,
-                    end = 16.dp,
-                    top = 16.dp,
-                ),
-    ) {
+    Column {
         val label =
             when (val size = hospitalList.size) {
                 0 -> "Añade aquí tus centros de trabajo"
@@ -77,29 +66,32 @@ private fun HospitalScreenLoaded(
                 else -> "$size centros de trabajo"
             }
 
-        Header(
-            modifier = Modifier.padding(bottom = 8.dp),
+        NurseraHeader(
             title = "Mis Hospitales",
             subtitle = label,
+            onIconClick = { executeIntent(HospitalIntent.OpenCreateHospital) },
+            icon = Icons.Filled.Add,
+            iconContentDescription = "add",
         )
 
         LazyColumn(
             modifier =
                 Modifier
+                    .padding(
+                        start = 16.dp,
+                        end = 16.dp,
+                    )
                     .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(top = 16.dp, bottom = 100.dp),
+            contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
         ) {
-            items(hospitalList, key = { it.id }) { hospital ->
+            items(items = hospitalList, key = { it.id }) { hospital ->
                 Box(modifier = Modifier.padding(bottom = 4.dp, end = 4.dp)) {
                     HospitalCard(
                         hospital = hospital,
                         onHospitalClick = { executeIntent(HospitalIntent.OpenHospitalDetail(hospital.id)) },
                     )
                 }
-            }
-            item {
-                AddHospitalButton(executeIntent)
             }
         }
     }

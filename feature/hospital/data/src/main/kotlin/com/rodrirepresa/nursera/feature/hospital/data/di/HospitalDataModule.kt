@@ -41,9 +41,7 @@ abstract class HospitalDataModule {
     abstract fun bindDeleteHospitalUseCase(impl: DeleteHospitalUseCaseImpl): DeleteHospitalUseCase
 
     @Binds
-    abstract fun bindGetRandomHospitalColorUseCase(
-        impl: GetRandomHospitalColorUseCaseImpl,
-    ): GetRandomHospitalColorUseCase
+    abstract fun bindGetRandomHospitalColorUseCase(impl: GetRandomHospitalColorUseCaseImpl): GetRandomHospitalColorUseCase
 
     @Binds
     abstract fun bindGetHospitalUseCase(impl: GetHospitalUseCaseImpl): GetHospitalUseCase
@@ -58,7 +56,5 @@ abstract class HospitalDataModule {
     abstract fun bindObserveHospitalByIdUseCase(impl: ObserveHospitalByIdUseCaseImpl): ObserveHospitalByIdUseCase
 
     @Binds
-    abstract fun bindDeleteShiftsFromHospitalUseCase(
-        impl: DeleteShiftsFromHospitalUseCaseImpl,
-    ): DeleteShiftsFromHospitalUseCase
+    abstract fun bindDeleteShiftsFromHospitalUseCase(impl: DeleteShiftsFromHospitalUseCaseImpl): DeleteShiftsFromHospitalUseCase
 }
