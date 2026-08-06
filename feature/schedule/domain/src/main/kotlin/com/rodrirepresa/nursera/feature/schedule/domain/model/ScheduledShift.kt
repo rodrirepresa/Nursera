@@ -1,6 +1,7 @@
 package com.rodrirepresa.nursera.feature.schedule.domain.model
 
 import java.time.LocalDate
+import java.time.LocalTime
 import java.util.UUID
 
 data class ScheduledShift(
@@ -10,4 +11,5 @@ data class ScheduledShift(
     val hospitalName: String,
     val hospitalColor: Int,
     val shiftName: String,
+    val startTime: LocalTime,
 )

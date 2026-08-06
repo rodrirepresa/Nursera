@@ -3,6 +3,7 @@ package com.rodrirepresa.nursera.feature.schedule.presentation.viewmodel
 import com.adidas.mvi.sideeffects.SideEffects
 import com.adidas.mvi.transform.SideEffectTransform
 import com.adidas.mvi.transform.ViewTransform
+import kotlinx.collections.immutable.toPersistentList
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -67,6 +68,70 @@ internal object ScheduleTransform {
         override fun mutate(currentState: ScheduleState): ScheduleState {
             if (currentState !is ScheduleState.Loaded) return currentState
             return currentState.copy(todayStatus = status)
+        }
+    }
+
+    data class ToggleShiftSelection(
+        val shiftId: String,
+    ) : ViewTransform<ScheduleState, ScheduleSideEffect>() {
+        override fun mutate(currentState: ScheduleState): ScheduleState {
+            if (currentState !is ScheduleState.Loaded) return currentState
+            val weekMode = currentState.viewMode as? ViewMode.Week ?: return currentState
+            return currentState.copy(
+                viewMode =
+                    weekMode.copy(
+                        dayShifts =
+                            weekMode.dayShifts.map { shift ->
+                                if (shift.id == shiftId) shift.copy(isSelected = !shift.isSelected) else shift
+                            }.toPersistentList(),
+                    ),
+            )
+        }
+    }
+
+    object DeleteSelectedShifts : ViewTransform<ScheduleState, ScheduleSideEffect>() {
+        override fun mutate(currentState: ScheduleState): ScheduleState {
+            if (currentState !is ScheduleState.Loaded) return currentState
+            val weekMode = currentState.viewMode as? ViewMode.Week ?: return currentState
+            return currentState.copy(
+                viewMode =
+                    weekMode.copy(
+                        dayShifts = weekMode.dayShifts.filterNot { it.isSelected }.toPersistentList(),
+                    ),
+            )
+        }
+    }
+
+    data class OpenAddShiftSheet(
+        val sheet: AddShiftSheetUiState,
+    ) : ViewTransform<ScheduleState, ScheduleSideEffect>() {
+        override fun mutate(currentState: ScheduleState): ScheduleState {
+            if (currentState !is ScheduleState.Loaded) return currentState
+            return currentState.copy(addShiftSheet = sheet)
+        }
+    }
+
+    object DismissAddShiftSheet : ViewTransform<ScheduleState, ScheduleSideEffect>() {
+        override fun mutate(currentState: ScheduleState): ScheduleState {
+            if (currentState !is ScheduleState.Loaded) return currentState
+            return currentState.copy(addShiftSheet = null)
+        }
+    }
+
+    data class AddShiftToDay(
+        val shift: DayShiftUiModel,
+    ) : ViewTransform<ScheduleState, ScheduleSideEffect>() {
+        override fun mutate(currentState: ScheduleState): ScheduleState {
+            if (currentState !is ScheduleState.Loaded) return currentState
+            val weekMode = currentState.viewMode as? ViewMode.Week ?: return currentState
+            val updatedShifts =
+                (weekMode.dayShifts + shift)
+                    .sortedBy { it.startTime }
+                    .toPersistentList()
+            return currentState.copy(
+                viewMode = weekMode.copy(dayShifts = updatedShifts),
+                addShiftSheet = null,
+            )
         }
     }
 

@@ -19,5 +19,6 @@ sealed interface ScheduleState : LoggableState {
         val monthList: PersistentMap<YearMonth, MonthData> = persistentHashMapOf(),
         val viewMode: ViewMode = ViewMode.Calendar,
         val todayStatus: TodayStatusUiModel? = null,
+        val addShiftSheet: AddShiftSheetUiState? = null,
     ) : ScheduleState
 }

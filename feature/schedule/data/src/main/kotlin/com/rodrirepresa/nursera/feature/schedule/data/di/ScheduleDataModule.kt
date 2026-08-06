@@ -4,6 +4,8 @@ import com.rodrirepresa.nursera.feature.schedule.data.repository.ScheduleReposit
 import com.rodrirepresa.nursera.feature.schedule.domain.repository.ScheduleRepository
 import com.rodrirepresa.nursera.feature.schedule.domain.usecase.AddScheduledShiftUseCase
 import com.rodrirepresa.nursera.feature.schedule.domain.usecase.AddScheduledShiftUseCaseImpl
+import com.rodrirepresa.nursera.feature.schedule.domain.usecase.DeleteScheduledShiftUseCase
+import com.rodrirepresa.nursera.feature.schedule.domain.usecase.DeleteScheduledShiftUseCaseImpl
 import com.rodrirepresa.nursera.feature.schedule.domain.usecase.ObserveMonthScheduleUseCase
 import com.rodrirepresa.nursera.feature.schedule.domain.usecase.ObserveMonthScheduleUseCaseImpl
 import dagger.Binds
@@ -22,4 +24,7 @@ abstract class ScheduleDataModule {
 
     @Binds
     abstract fun bindAddScheduledShiftUseCase(impl: AddScheduledShiftUseCaseImpl): AddScheduledShiftUseCase
+
+    @Binds
+    abstract fun bindDeleteScheduledShiftUseCase(impl: DeleteScheduledShiftUseCaseImpl): DeleteScheduledShiftUseCase
 }

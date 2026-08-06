@@ -9,4 +9,5 @@ internal fun ScheduledShift.toDayShiftUiModel(): DayShiftUiModel =
         hospitalName = hospitalName,
         hospitalColor = hospitalColor,
         shiftName = shiftName,
+        startTime = startTime,
     )

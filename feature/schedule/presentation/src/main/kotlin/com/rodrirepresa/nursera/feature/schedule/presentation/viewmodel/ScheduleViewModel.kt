@@ -7,7 +7,11 @@ import com.adidas.mvi.Reducer
 import com.adidas.mvi.State
 import com.adidas.mvi.transform.StateTransform
 import com.rodrirepresa.nursera.core.common.DispatcherProvider
+import com.rodrirepresa.nursera.feature.hospital.domain.model.Hospital
+import com.rodrirepresa.nursera.feature.hospital.domain.usecase.ObserveHospitalsUseCase
 import com.rodrirepresa.nursera.feature.schedule.domain.model.ScheduledShift
+import com.rodrirepresa.nursera.feature.schedule.domain.usecase.AddScheduledShiftUseCase
+import com.rodrirepresa.nursera.feature.schedule.domain.usecase.DeleteScheduledShiftUseCase
 import com.rodrirepresa.nursera.feature.schedule.domain.usecase.ObserveMonthScheduleUseCase
 import com.rodrirepresa.nursera.feature.schedule.presentation.mappers.toDayShiftUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,7 +24,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.YearMonth
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -29,6 +35,9 @@ internal class ScheduleViewModel
     constructor(
         dispatcherProvider: DispatcherProvider,
         private val observeMonthScheduleUseCase: ObserveMonthScheduleUseCase,
+        private val addScheduledShiftUseCase: AddScheduledShiftUseCase,
+        private val deleteScheduledShiftUseCase: DeleteScheduledShiftUseCase,
+        private val observeHospitalsUseCase: ObserveHospitalsUseCase,
     ) : ViewModel(), MviHost<ScheduleIntent, State<ScheduleState, ScheduleSideEffect>> {
         private val reducer: Reducer<ScheduleIntent, State<ScheduleState, ScheduleSideEffect>> =
             com.adidas.mvi.reducer.Reducer(
@@ -56,6 +65,20 @@ internal class ScheduleViewModel
                 is ScheduleIntent.SwitchToWeekView -> executeSwitchToWeekView()
                 is ScheduleIntent.BackToCalendar -> executeBackToCalendar()
                 is ScheduleIntent.SelectWeek -> executeSelectWeek(intent.weekDays)
+                is ScheduleIntent.ToggleShiftSelection -> executeToggleShiftSelection(intent.shiftId)
+                is ScheduleIntent.DeleteSelectedShifts -> executeDeleteSelectedShifts()
+                is ScheduleIntent.OpenAddShiftSheet -> executeOpenAddShiftSheet()
+                is ScheduleIntent.DismissAddShiftSheet -> executeDismissAddShiftSheet()
+                is ScheduleIntent.SelectHospital -> executeSelectHospital(intent.hospitalId)
+                is ScheduleIntent.AddShift ->
+                    executeAddShift(
+                        intent.hospitalId,
+                        intent.hospitalName,
+                        intent.hospitalColor,
+                        intent.shiftId,
+                        intent.shiftName,
+                        intent.startTime,
+                    )
             }
 
         private fun executeLoad(): Flow<StateTransform<State<ScheduleState, ScheduleSideEffect>>> =
@@ -151,6 +174,73 @@ internal class ScheduleViewModel
         private fun executeBackToCalendar(): Flow<StateTransform<State<ScheduleState, ScheduleSideEffect>>> =
             flow { emit(ScheduleTransform.ShowCalendarView) }
 
+        private fun executeToggleShiftSelection(shiftId: String): Flow<StateTransform<State<ScheduleState, ScheduleSideEffect>>> =
+            flow { emit(ScheduleTransform.ToggleShiftSelection(shiftId)) }
+
+        private fun executeDeleteSelectedShifts(): Flow<StateTransform<State<ScheduleState, ScheduleSideEffect>>> =
+            flow {
+                val loaded = state.value.view as? ScheduleState.Loaded ?: return@flow
+                val weekMode = loaded.viewMode as? ViewMode.Week ?: return@flow
+                weekMode.dayShifts.filter { it.isSelected }.forEach { shift ->
+                    deleteScheduledShiftUseCase(UUID.fromString(shift.id))
+                }
+                emit(ScheduleTransform.DeleteSelectedShifts)
+            }
+
+        private fun executeOpenAddShiftSheet(): Flow<StateTransform<State<ScheduleState, ScheduleSideEffect>>> =
+            flow {
+                val hospitals = observeHospitalsUseCase().first()
+                val items = hospitals.map { it.toPickerItem() }.toPersistentList()
+                emit(ScheduleTransform.OpenAddShiftSheet(AddShiftSheetUiState.HospitalList(items)))
+            }
+
+        private fun executeDismissAddShiftSheet(): Flow<StateTransform<State<ScheduleState, ScheduleSideEffect>>> =
+            flow { emit(ScheduleTransform.DismissAddShiftSheet) }
+
+        private fun executeSelectHospital(hospitalId: UUID): Flow<StateTransform<State<ScheduleState, ScheduleSideEffect>>> =
+            flow {
+                val hospitals = observeHospitalsUseCase().first()
+                val hospital = hospitals.firstOrNull { it.id == hospitalId } ?: return@flow
+                val shiftItems = hospital.shifts.map { it.toPickerItem() }.toPersistentList()
+                emit(
+                    ScheduleTransform.OpenAddShiftSheet(
+                        AddShiftSheetUiState.ShiftList(hospital = hospital.toPickerItem(), shifts = shiftItems),
+                    ),
+                )
+            }
+
+        private fun executeAddShift(
+            hospitalId: UUID,
+            hospitalName: String,
+            hospitalColor: Int,
+            shiftId: UUID,
+            shiftName: String,
+            startTime: LocalTime,
+        ): Flow<StateTransform<State<ScheduleState, ScheduleSideEffect>>> =
+            flow {
+                val loaded = state.value.view as? ScheduleState.Loaded ?: return@flow
+                val weekMode = loaded.viewMode as? ViewMode.Week ?: return@flow
+                addScheduledShiftUseCase(
+                    date = weekMode.selectedDate,
+                    hospitalId = hospitalId,
+                    hospitalName = hospitalName,
+                    hospitalColor = hospitalColor,
+                    shiftName = shiftName,
+                    startTime = startTime,
+                )
+                emit(
+                    ScheduleTransform.AddShiftToDay(
+                        DayShiftUiModel(
+                            id = shiftId.toString(),
+                            hospitalName = hospitalName,
+                            hospitalColor = hospitalColor,
+                            shiftName = shiftName,
+                            startTime = startTime,
+                        ),
+                    ),
+                )
+            }
+
         private fun computeTodayStatus(
             today: LocalDate,
             monthMap: Map<YearMonth, MonthData>,
@@ -191,7 +281,7 @@ internal class ScheduleViewModel
                     .groupBy { it.date }
                     .entries
                     .fold(persistentHashMapOf<LocalDate, ImmutableList<DayShiftUiModel>>()) { map, (date, dayShifts) ->
-                        map.put(date, dayShifts.map { it.toDayShiftUiModel() }.toPersistentList())
+                        map.put(date, dayShifts.sortedBy { it.startTime }.map { it.toDayShiftUiModel() }.toPersistentList())
                     }
             return MonthData(days = days, shiftsByDay = shiftsByDay)
         }
@@ -241,3 +331,10 @@ internal class ScheduleViewModel
                 .flatten()
         }
     }
+
+private fun Hospital.toPickerItem() = HospitalPickerItem(id = id, name = name, color = color)
+
+private fun com.rodrirepresa.nursera.feature.hospital.domain.model.ShiftType.toPickerItem(): ShiftPickerItem {
+    val fmt = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
+    return ShiftPickerItem(id = id, name = name, startTime = startTime.format(fmt), endTime = endTime.format(fmt))
+}

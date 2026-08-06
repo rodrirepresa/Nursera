@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.YearMonth
 import java.util.UUID
 import javax.inject.Inject
@@ -27,6 +28,7 @@ class ScheduleRepositoryImpl
             hospitalName: String,
             hospitalColor: Int,
             shiftName: String,
+            startTime: LocalTime,
         ) {
             shiftsFlow.update { current ->
                 current +
@@ -37,8 +39,13 @@ class ScheduleRepositoryImpl
                         hospitalName = hospitalName,
                         hospitalColor = hospitalColor,
                         shiftName = shiftName,
+                        startTime = startTime,
                     )
             }
+        }
+
+        override suspend fun deleteShift(id: UUID) {
+            shiftsFlow.update { current -> current.filterNot { it.id == id } }
         }
 
         private fun seedShifts(): List<ScheduledShift> {
@@ -62,7 +69,7 @@ class ScheduleRepositoryImpl
                 add(shift(now.atDay(3), maranon, "H. G. Marañón", 0xFF90CAF9.toInt(), "Mañana"))
                 add(shift(now.atDay(7), maranon, "H. G. Marañón", 0xFF90CAF9.toInt(), "Noche"))
                 add(shift(now.atDay(14), maranon, "H. G. Marañón", 0xFF90CAF9.toInt(), "Mañana"))
-                // add(shift(now.atDay(21), maranon, "H. G. Marañón", 0xFF90CAF9.toInt(), "Noche"))
+                add(shift(now.atDay(21), maranon, "H. G. Marañón", 0xFF90CAF9.toInt(), "Noche"))
                 add(shift(now.atDay(28), maranon, "H. G. Marañón", 0xFF90CAF9.toInt(), "Mañana"))
                 // Clínica Universidad de Navarra — morado
                 add(shift(now.atDay(5), navarra, "C. Navarra", 0xFFC5A3FF.toInt(), "Fin de semana"))
@@ -88,6 +95,7 @@ class ScheduleRepositoryImpl
             hospitalName: String,
             hospitalColor: Int,
             shiftName: String,
+            startTime: LocalTime = LocalTime.of(8, 0),
         ) = ScheduledShift(
             id = UUID.randomUUID(),
             date = date,
@@ -95,5 +103,6 @@ class ScheduleRepositoryImpl
             hospitalName = hospitalName,
             hospitalColor = hospitalColor,
             shiftName = shiftName,
+            startTime = startTime,
         )
     }

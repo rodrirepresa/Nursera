@@ -14,6 +14,7 @@ dependencies {
 
     // Projects
     implementation(projects.feature.schedule.domain)
+    implementation(projects.feature.hospital.domain)
     implementation(projects.core.common)
     implementation(projects.core.ui)
 
