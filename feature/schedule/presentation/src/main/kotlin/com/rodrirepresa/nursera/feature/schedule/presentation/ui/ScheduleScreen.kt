@@ -150,7 +150,6 @@ private fun ScheduleLoadedContent(
             DayOfWeekRow(modifier = Modifier.padding(horizontal = 16.dp))
             AnimatedContent(
                 targetState = state.viewMode,
-                transitionSpec = { fadeIn() togetherWith fadeOut() },
                 label = "scheduleViewMode",
                 modifier = Modifier.weight(1f),
             ) { viewMode ->
