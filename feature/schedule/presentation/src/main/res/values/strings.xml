@@ -11,7 +11,10 @@
     <string name="schedule_delete_selected_shifts_description">Eliminar turnos seleccionados</string>
     <string name="schedule_add_shift_description">Añadir turno</string>
     <string name="schedule_add_shift_pick_hospital">Selecciona un hospital</string>
+    <string name="schedule_add_shift_pick_shift">Selecciona un turno</string>
     <string name="schedule_add_shift_back_to_hospitals">Volver a hospitales</string>
+    <string name="schedule_day_shifts_title">Turnos del día</string>
+    <string name="schedule_add_shift_no_hospitals">No tienes hospitales creados todavía</string>
     <string name="schedule_next_shift_label">Próximo turno</string>
     <string name="schedule_vacation_label">días libres consecutivos</string>
     <string name="schedule_vacation_range_same_month">del %1$d al %2$d de %3$s</string>

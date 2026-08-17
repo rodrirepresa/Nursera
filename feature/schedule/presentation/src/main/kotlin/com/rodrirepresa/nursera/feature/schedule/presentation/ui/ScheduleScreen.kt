@@ -1,13 +1,14 @@
 package com.rodrirepresa.nursera.feature.schedule.presentation.ui
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,15 +21,25 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -54,15 +65,19 @@ import com.rodrirepresa.nursera.core.ui.NeoBrutalistDayCard
 import com.rodrirepresa.nursera.core.ui.NurseraCard
 import com.rodrirepresa.nursera.core.ui.NurseraErrorView
 import com.rodrirepresa.nursera.core.ui.NurseraHeader
+import com.rodrirepresa.nursera.core.ui.NurseraIconButton
 import com.rodrirepresa.nursera.core.ui.NurseraLoadingView
 import com.rodrirepresa.nursera.core.ui.darken
 import com.rodrirepresa.nursera.feature.schedule.presentation.R
+import com.rodrirepresa.nursera.feature.schedule.presentation.viewmodel.AddShiftSheetUiState
 import com.rodrirepresa.nursera.feature.schedule.presentation.viewmodel.CalendarDay
 import com.rodrirepresa.nursera.feature.schedule.presentation.viewmodel.DayShiftUiModel
+import com.rodrirepresa.nursera.feature.schedule.presentation.viewmodel.HospitalPickerItem
 import com.rodrirepresa.nursera.feature.schedule.presentation.viewmodel.MonthData
 import com.rodrirepresa.nursera.feature.schedule.presentation.viewmodel.ScheduleIntent
 import com.rodrirepresa.nursera.feature.schedule.presentation.viewmodel.ScheduleState
 import com.rodrirepresa.nursera.feature.schedule.presentation.viewmodel.ScheduleViewModel
+import com.rodrirepresa.nursera.feature.schedule.presentation.viewmodel.ShiftPickerItem
 import com.rodrirepresa.nursera.feature.schedule.presentation.viewmodel.TodayStatusUiModel
 import com.rodrirepresa.nursera.feature.schedule.presentation.viewmodel.ViewMode
 import kotlinx.collections.immutable.ImmutableList
@@ -70,6 +85,7 @@ import kotlinx.collections.immutable.persistentHashMapOf
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -150,6 +166,11 @@ private fun ScheduleLoadedContent(
             DayOfWeekRow(modifier = Modifier.padding(horizontal = 16.dp))
             AnimatedContent(
                 targetState = state.viewMode,
+                // Key only by the view-mode type: without this, any change to fields inside
+                // ViewMode.Week (e.g. dayShifts after adding a shift) would be treated as a
+                // brand-new target state, tearing down and recreating WeekView (losing its
+                // pagerState) instead of just recomposing it with the updated data.
+                contentKey = { it::class },
                 label = "scheduleViewMode",
                 modifier = Modifier.weight(1f),
             ) { viewMode ->
@@ -239,7 +260,7 @@ private fun CalendarView(
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun WeekView(
     state: ScheduleState.Loaded,
@@ -253,6 +274,8 @@ private fun WeekView(
     val monthData = state.monthList[month]
     val allWeeks = remember(monthData) { monthData?.days?.chunked(7) ?: emptyList() }
     val pagerState = rememberPagerState(initialPage = viewMode.weekIndex) { allWeeks.size }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val hasSelectedShifts = viewMode.dayShifts.any { it.isSelected }
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.settledPage }.collect { page ->
@@ -301,42 +324,190 @@ private fun WeekView(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        AnimatedContent(
-            targetState = viewMode.selectedDate to viewMode.dayShifts,
-            transitionSpec = { fadeIn() togetherWith fadeOut() },
-            label = "dayShifts",
-        ) { (_, shifts) ->
-            if (shifts.isEmpty()) {
-                Box(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                    contentAlignment = Alignment.Center,
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = stringResource(R.string.schedule_day_shifts_title),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                AnimatedVisibility(
+                    visible = hasSelectedShifts,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
                 ) {
-                    Text(
-                        text = stringResource(R.string.schedule_no_shifts_for_day),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = OutOfMonthText,
+                    NurseraIconButton(
+                        onClick = { executeIntent(ScheduleIntent.DeleteSelectedShifts) },
+                        backgroundColor = Color(0xFFFF6B6B),
+                        shadowOffset = 3.dp,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = stringResource(R.string.schedule_delete_selected_shifts_description),
+                            modifier = Modifier.padding(0.dp),
+                        )
+                    }
+                }
+                NurseraIconButton(
+                    onClick = { executeIntent(ScheduleIntent.OpenAddShiftSheet) },
+                    shadowOffset = 3.dp,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = stringResource(R.string.schedule_add_shift_description),
+                        modifier = Modifier.padding(0.dp),
                     )
                 }
-            } else {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                ) {
-                    items(shifts, key = { it.id }) { shift ->
-                        ShiftCard(shift = shift)
-                    }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        if (viewMode.dayShifts.isEmpty()) {
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = stringResource(R.string.schedule_no_shifts_for_day),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = OutOfMonthText,
+                )
+            }
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp),
+            ) {
+                items(viewMode.dayShifts, key = { it.id }) { shift ->
+                    ShiftCard(
+                        shift = shift,
+                        isSelected = shift.isSelected,
+                        modifier = Modifier.animateItem(),
+                        onClick = { executeIntent(ScheduleIntent.ToggleShiftSelection(shift.id)) },
+                    )
                 }
             }
         }
     }
+
+    if (state.addShiftSheet != null) {
+        AddShiftBottomSheet(
+            sheet = state.addShiftSheet,
+            sheetState = sheetState,
+            executeIntent = executeIntent,
+        )
+    }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ShiftCard(
-    shift: DayShiftUiModel,
+private fun AddShiftBottomSheet(
+    sheet: AddShiftSheetUiState,
+    sheetState: SheetState,
+    executeIntent: (ScheduleIntent) -> Unit,
+) {
+    ModalBottomSheet(
+        onDismissRequest = { executeIntent(ScheduleIntent.DismissAddShiftSheet) },
+        sheetState = sheetState,
+        containerColor = CalendarBackground,
+    ) {
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .navigationBarsPadding(),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            when (sheet) {
+                is AddShiftSheetUiState.HospitalList -> {
+                    Text(
+                        text = stringResource(R.string.schedule_add_shift_pick_hospital),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    if (sheet.hospitals.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.schedule_add_shift_no_hospitals),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = OutOfMonthText,
+                        )
+                    } else {
+                        sheet.hospitals.forEach { hospital ->
+                            HospitalPickerRow(
+                                hospital = hospital,
+                                onClick = { executeIntent(ScheduleIntent.SelectHospital(hospital.id)) },
+                            )
+                        }
+                    }
+                }
+
+                is AddShiftSheetUiState.ShiftList -> {
+                    Row(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .clickable { executeIntent(ScheduleIntent.OpenAddShiftSheet) },
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.schedule_add_shift_back_to_hospitals),
+                        )
+                        Text(
+                            text = stringResource(R.string.schedule_add_shift_back_to_hospitals),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                    Text(
+                        text = stringResource(R.string.schedule_add_shift_pick_shift),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    sheet.shifts.forEach { shift ->
+                        ShiftPickerRow(
+                            hospital = sheet.hospital,
+                            shift = shift,
+                            onClick = {
+                                executeIntent(
+                                    ScheduleIntent.AddShift(
+                                        hospitalId = sheet.hospital.id,
+                                        hospitalName = sheet.hospital.name,
+                                        hospitalColor = sheet.hospital.color,
+                                        shiftId = shift.id,
+                                        shiftName = shift.name,
+                                        startTime = LocalTime.parse(shift.startTime, HOUR_MINUTE_FORMATTER),
+                                    ),
+                                )
+                            },
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
+}
+
+private val HOUR_MINUTE_FORMATTER = DateTimeFormatter.ofPattern("HH:mm")
+
+@Composable
+private fun HospitalPickerRow(
+    hospital: HospitalPickerItem,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     NurseraCard(
@@ -344,7 +515,72 @@ private fun ShiftCard(
             modifier
                 .fillMaxWidth()
                 .padding(end = 4.dp, bottom = 4.dp),
-        backgroundColor = Color(shift.hospitalColor),
+        backgroundColor = Color(hospital.color),
+        onClick = onClick,
+    ) {
+        Text(
+            text = hospital.name,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color(hospital.color).darken(),
+        )
+    }
+}
+
+@Composable
+private fun ShiftPickerRow(
+    hospital: HospitalPickerItem,
+    shift: ShiftPickerItem,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    NurseraCard(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(end = 4.dp, bottom = 4.dp),
+        backgroundColor = Color(hospital.color),
+        onClick = onClick,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = shift.name,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color(hospital.color).darken(),
+            )
+            Text(
+                text = "${shift.startTime}–${shift.endTime}",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(hospital.color).darken(),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ShiftCard(
+    shift: DayShiftUiModel,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val backgroundColor by animateColorAsState(
+        targetValue = if (isSelected) Color(0xFFFF6B6B) else Color(shift.hospitalColor),
+        label = "dayShiftCardColor",
+    )
+    NurseraCard(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(end = 4.dp, bottom = 4.dp),
+        backgroundColor = backgroundColor,
+        forcePressed = isSelected,
+        onClick = onClick,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -355,10 +591,12 @@ private fun ShiftCard(
                 text = shift.hospitalName,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
+                color = Color(shift.hospitalColor).darken(),
             )
             Text(
                 text = shift.shiftName,
                 style = MaterialTheme.typography.bodySmall,
+                color = Color(shift.hospitalColor).darken(),
             )
         }
     }

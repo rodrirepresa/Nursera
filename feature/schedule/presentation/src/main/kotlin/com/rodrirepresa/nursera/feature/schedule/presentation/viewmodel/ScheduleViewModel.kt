@@ -220,23 +220,28 @@ internal class ScheduleViewModel
             flow {
                 val loaded = state.value.view as? ScheduleState.Loaded ?: return@flow
                 val weekMode = loaded.viewMode as? ViewMode.Week ?: return@flow
-                addScheduledShiftUseCase(
-                    date = weekMode.selectedDate,
-                    hospitalId = hospitalId,
-                    hospitalName = hospitalName,
-                    hospitalColor = hospitalColor,
-                    shiftName = shiftName,
-                    startTime = startTime,
-                )
+                val date = weekMode.selectedDate
+                val createdShift =
+                    addScheduledShiftUseCase(
+                        date = date,
+                        hospitalId = hospitalId,
+                        hospitalName = hospitalName,
+                        hospitalColor = hospitalColor,
+                        shiftName = shiftName,
+                        startTime = startTime,
+                    )
                 emit(
                     ScheduleTransform.AddShiftToDay(
-                        DayShiftUiModel(
-                            id = shiftId.toString(),
-                            hospitalName = hospitalName,
-                            hospitalColor = hospitalColor,
-                            shiftName = shiftName,
-                            startTime = startTime,
-                        ),
+                        date = date,
+                        month = YearMonth.from(date),
+                        shift =
+                            DayShiftUiModel(
+                                id = createdShift.id.toString(),
+                                hospitalName = hospitalName,
+                                hospitalColor = hospitalColor,
+                                shiftName = shiftName,
+                                startTime = startTime,
+                            ),
                     ),
                 )
             }

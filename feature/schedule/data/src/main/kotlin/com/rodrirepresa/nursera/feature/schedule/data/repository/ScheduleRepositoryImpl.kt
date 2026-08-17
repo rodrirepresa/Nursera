@@ -29,19 +29,19 @@ class ScheduleRepositoryImpl
             hospitalColor: Int,
             shiftName: String,
             startTime: LocalTime,
-        ) {
-            shiftsFlow.update { current ->
-                current +
-                    ScheduledShift(
-                        id = UUID.randomUUID(),
-                        date = date,
-                        hospitalId = hospitalId,
-                        hospitalName = hospitalName,
-                        hospitalColor = hospitalColor,
-                        shiftName = shiftName,
-                        startTime = startTime,
-                    )
-            }
+        ): ScheduledShift {
+            val newShift =
+                ScheduledShift(
+                    id = UUID.randomUUID(),
+                    date = date,
+                    hospitalId = hospitalId,
+                    hospitalName = hospitalName,
+                    hospitalColor = hospitalColor,
+                    shiftName = shiftName,
+                    startTime = startTime,
+                )
+            shiftsFlow.update { current -> current + newShift }
+            return newShift
         }
 
         override suspend fun deleteShift(id: UUID) {

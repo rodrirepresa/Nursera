@@ -1,5 +1,6 @@
 package com.rodrirepresa.nursera.feature.schedule.domain.usecase
 
+import com.rodrirepresa.nursera.feature.schedule.domain.model.ScheduledShift
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.UUID
@@ -12,5 +13,5 @@ interface AddScheduledShiftUseCase {
         hospitalColor: Int,
         shiftName: String,
         startTime: LocalTime,
-    )
+    ): ScheduledShift
 }

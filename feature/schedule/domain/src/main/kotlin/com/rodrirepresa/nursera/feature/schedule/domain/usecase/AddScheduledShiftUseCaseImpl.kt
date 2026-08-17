@@ -1,5 +1,6 @@
 package com.rodrirepresa.nursera.feature.schedule.domain.usecase
 
+import com.rodrirepresa.nursera.feature.schedule.domain.model.ScheduledShift
 import com.rodrirepresa.nursera.feature.schedule.domain.repository.ScheduleRepository
 import java.time.LocalDate
 import java.time.LocalTime
@@ -18,12 +19,13 @@ class AddScheduledShiftUseCaseImpl
             hospitalColor: Int,
             shiftName: String,
             startTime: LocalTime,
-        ) = repository.addShift(
-            date = date,
-            hospitalId = hospitalId,
-            hospitalName = hospitalName,
-            hospitalColor = hospitalColor,
-            shiftName = shiftName,
-            startTime = startTime,
-        )
+        ): ScheduledShift =
+            repository.addShift(
+                date = date,
+                hospitalId = hospitalId,
+                hospitalName = hospitalName,
+                hospitalColor = hospitalColor,
+                shiftName = shiftName,
+                startTime = startTime,
+            )
     }

@@ -17,7 +17,7 @@ interface ScheduleRepository {
         hospitalColor: Int,
         shiftName: String,
         startTime: LocalTime,
-    )
+    ): ScheduledShift
 
     suspend fun deleteShift(id: UUID)
 }
