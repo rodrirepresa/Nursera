@@ -16,6 +16,4 @@
     <string name="earnings_top_hospital_none">Top hospital: —</string>
     <string name="earnings_top_hospital">Top hospital: %1$s</string>
     <string name="earnings_shift_count">%1$d shifts</string>
-    <string name="earnings_percentage">%1$.1f%%</string>
-    <string name="earnings_gross_and_irpf">Gross %1$s · Tax %2$.1f%%</string>
 </resources>

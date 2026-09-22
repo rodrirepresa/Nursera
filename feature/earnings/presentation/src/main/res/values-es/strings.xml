@@ -16,6 +16,4 @@
     <string name="earnings_top_hospital_none">Hospital principal: —</string>
     <string name="earnings_top_hospital">Hospital principal: %1$s</string>
     <string name="earnings_shift_count">%1$d turnos</string>
-    <string name="earnings_percentage">%1$.1f%%</string>
-    <string name="earnings_gross_and_irpf">Bruto %1$s · IRPF %2$.1f%%</string>
 </resources>
