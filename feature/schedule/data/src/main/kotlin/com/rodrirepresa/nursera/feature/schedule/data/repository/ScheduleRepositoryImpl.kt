@@ -57,35 +57,35 @@ class ScheduleRepositoryImpl
             val lafe = UUID.randomUUID()
             val ramon = UUID.randomUUID()
             return buildList {
-                // Hospital La Paz — turquesa
-                add(shift(now.atDay(2), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Mañana"))
-                add(shift(now.atDay(5), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Tarde"))
-                add(shift(now.atDay(9), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Noche"))
-                add(shift(now.atDay(12), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Mañana"))
-                add(shift(now.atDay(16), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Tarde"))
-                add(shift(now.atDay(23), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Mañana"))
-                add(shift(now.atDay(26), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Tarde"))
-                // Hospital Gregorio Marañón — azul claro
-                add(shift(now.atDay(3), maranon, "H. G. Marañón", 0xFF90CAF9.toInt(), "Mañana"))
-                add(shift(now.atDay(7), maranon, "H. G. Marañón", 0xFF90CAF9.toInt(), "Noche"))
-                add(shift(now.atDay(14), maranon, "H. G. Marañón", 0xFF90CAF9.toInt(), "Mañana"))
-                add(shift(now.atDay(21), maranon, "H. G. Marañón", 0xFF90CAF9.toInt(), "Noche"))
-                add(shift(now.atDay(28), maranon, "H. G. Marañón", 0xFF90CAF9.toInt(), "Mañana"))
-                // Clínica Universidad de Navarra — morado
-                add(shift(now.atDay(5), navarra, "C. Navarra", 0xFFC5A3FF.toInt(), "Fin de semana"))
-                add(shift(now.atDay(12), navarra, "C. Navarra", 0xFFC5A3FF.toInt(), "Tarde"))
-                add(shift(now.atDay(26), navarra, "C. Navarra", 0xFFC5A3FF.toInt(), "Fin de semana"))
-                // Hospital Quirón — melocotón
-                add(shift(now.atDay(4), quiron, "Hospital Quirón", 0xFFFFCBA4.toInt(), "Mañana"))
-                add(shift(now.atDay(11), quiron, "Hospital Quirón", 0xFFFFCBA4.toInt(), "Tarde"))
-                add(shift(now.atDay(25), quiron, "Hospital Quirón", 0xFFFFCBA4.toInt(), "Fin de semana"))
-                // Hospital La Fe — rosa — solapado con La Paz para probar stacking
-                add(shift(now.atDay(9), lafe, "Hospital La Fe", 0xFFFF8FAB.toInt(), "Mañana"))
-                add(shift(now.atDay(16), lafe, "Hospital La Fe", 0xFFFF8FAB.toInt(), "Noche"))
-                add(shift(now.atDay(23), lafe, "Hospital La Fe", 0xFFFF8FAB.toInt(), "Mañana"))
-                // Hospital Ramón y Cajal — amarillo — solapado con Navarra para probar stacking
-                add(shift(now.atDay(5), ramon, "H. Ramón y Cajal", 0xFFFFE566.toInt(), "Mañana"))
-                add(shift(now.atDay(12), ramon, "H. Ramón y Cajal", 0xFFFFE566.toInt(), "Tarde"))
+                // Hospital La Paz — turquoise
+                add(shift(now.atDay(2), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Morning"))
+                add(shift(now.atDay(5), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Afternoon"))
+                add(shift(now.atDay(9), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Night"))
+                add(shift(now.atDay(12), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Morning"))
+                add(shift(now.atDay(16), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Afternoon"))
+                add(shift(now.atDay(23), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Morning"))
+                add(shift(now.atDay(26), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Afternoon"))
+                // Gregorio Marañón Hospital — light blue
+                add(shift(now.atDay(3), maranon, "H. G. Marañón", 0xFF90CAF9.toInt(), "Morning"))
+                add(shift(now.atDay(7), maranon, "H. G. Marañón", 0xFF90CAF9.toInt(), "Night"))
+                add(shift(now.atDay(14), maranon, "H. G. Marañón", 0xFF90CAF9.toInt(), "Morning"))
+                add(shift(now.atDay(21), maranon, "H. G. Marañón", 0xFF90CAF9.toInt(), "Night"))
+                add(shift(now.atDay(28), maranon, "H. G. Marañón", 0xFF90CAF9.toInt(), "Morning"))
+                // Navarra University Clinic — purple
+                add(shift(now.atDay(5), navarra, "C. Navarra", 0xFFC5A3FF.toInt(), "Weekend"))
+                add(shift(now.atDay(12), navarra, "C. Navarra", 0xFFC5A3FF.toInt(), "Afternoon"))
+                add(shift(now.atDay(26), navarra, "C. Navarra", 0xFFC5A3FF.toInt(), "Weekend"))
+                // Quirón Hospital — peach
+                add(shift(now.atDay(4), quiron, "Hospital Quirón", 0xFFFFCBA4.toInt(), "Morning"))
+                add(shift(now.atDay(11), quiron, "Hospital Quirón", 0xFFFFCBA4.toInt(), "Afternoon"))
+                add(shift(now.atDay(25), quiron, "Hospital Quirón", 0xFFFFCBA4.toInt(), "Weekend"))
+                // Hospital La Fe — pink — overlaps with La Paz to exercise stacking
+                add(shift(now.atDay(9), lafe, "Hospital La Fe", 0xFFFF8FAB.toInt(), "Morning"))
+                add(shift(now.atDay(16), lafe, "Hospital La Fe", 0xFFFF8FAB.toInt(), "Night"))
+                add(shift(now.atDay(23), lafe, "Hospital La Fe", 0xFFFF8FAB.toInt(), "Morning"))
+                // Ramón y Cajal Hospital — yellow — overlaps with Navarra to exercise stacking
+                add(shift(now.atDay(5), ramon, "H. Ramón y Cajal", 0xFFFFE566.toInt(), "Morning"))
+                add(shift(now.atDay(12), ramon, "H. Ramón y Cajal", 0xFFFFE566.toInt(), "Afternoon"))
             }.filter { it.date.year == now.year && it.date.monthValue == now.monthValue }
         }
 

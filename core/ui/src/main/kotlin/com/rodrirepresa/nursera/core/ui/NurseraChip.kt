@@ -47,7 +47,7 @@ fun NurseraChip(
 @Composable
 private fun NurseraChipPreview() {
     NurseraChip(backgroundColor = Color(0xFFDAF5F0)) {
-        Text("Mañana", style = MaterialTheme.typography.labelSmall)
+        Text("Morning", style = MaterialTheme.typography.labelSmall)
     }
 }
 
@@ -55,6 +55,6 @@ private fun NurseraChipPreview() {
 @Composable
 private fun NurseraChipAccentPreview() {
     NurseraChip(backgroundColor = Color(0xFFFF6B6B)) {
-        Text("Noche", style = MaterialTheme.typography.labelSmall)
+        Text("Night", style = MaterialTheme.typography.labelSmall)
     }
 }

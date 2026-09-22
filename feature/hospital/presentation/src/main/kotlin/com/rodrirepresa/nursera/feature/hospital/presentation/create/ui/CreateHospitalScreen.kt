@@ -448,7 +448,7 @@ private fun CreateHospitalLoadedContentPreview() {
                         CreateShiftItem(
                             form =
                                 ShiftFormUiState(
-                                    name = "Mañana",
+                                    name = "Morning",
                                     startTime = "08:00",
                                     endTime = "15:00",
                                     hourlyRate = "18.5",
@@ -458,7 +458,7 @@ private fun CreateHospitalLoadedContentPreview() {
                         CreateShiftItem(
                             form =
                                 ShiftFormUiState(
-                                    name = "Tarde",
+                                    name = "Afternoon",
                                     startTime = "15:00",
                                     endTime = "22:00",
                                     hourlyRate = "19.0",
@@ -487,7 +487,7 @@ private fun CreateHospitalSheetPreview() {
                         CreateShiftItem(
                             form =
                                 ShiftFormUiState(
-                                    name = "Mañana",
+                                    name = "Morning",
                                     startTime = "08:00",
                                     endTime = "15:00",
                                     hourlyRate = "18.5",
@@ -495,7 +495,7 @@ private fun CreateHospitalSheetPreview() {
                             id = "1",
                         ),
                     ),
-                shiftForm = ShiftFormUiState(name = "Noche", startTime = "22:00", endTime = "08:00"),
+                shiftForm = ShiftFormUiState(name = "Night", startTime = "22:00", endTime = "08:00"),
                 canSaveShiftForm = false,
             ),
     )
@@ -517,7 +517,7 @@ private fun CreateHospitalWithSelectionPreview() {
                         CreateShiftItem(
                             form =
                                 ShiftFormUiState(
-                                    name = "Mañana",
+                                    name = "Morning",
                                     startTime = "08:00",
                                     endTime = "15:00",
                                     hourlyRate = "18.5",
@@ -528,7 +528,7 @@ private fun CreateHospitalWithSelectionPreview() {
                         CreateShiftItem(
                             form =
                                 ShiftFormUiState(
-                                    name = "Tarde",
+                                    name = "Afternoon",
                                     startTime = "15:00",
                                     endTime = "22:00",
                                     hourlyRate = "19.0",
@@ -556,7 +556,7 @@ private fun CreateHospitalSavingPreview() {
                         CreateShiftItem(
                             form =
                                 ShiftFormUiState(
-                                    name = "Mañana",
+                                    name = "Morning",
                                     startTime = "08:00",
                                     endTime = "15:00",
                                     hourlyRate = "18.5",

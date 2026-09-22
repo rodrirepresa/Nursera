@@ -47,7 +47,7 @@ class ProfileViewModelTest {
     private val shiftType =
         ShiftType(
             id = UUID.randomUUID(),
-            name = "Mañana",
+            name = "Morning",
             startTime = LocalTime.of(8, 0),
             endTime = LocalTime.of(15, 0),
             hourlyRate = 20.0,

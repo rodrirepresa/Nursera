@@ -18,6 +18,9 @@ class HospitalLocalizationTest {
     fun `english locale resolves default strings`() {
         assertEquals("My Hospitals", context.getString(R.string.hospital_list_title))
         assertEquals("New Hospital", context.getString(R.string.create_hospital_title))
+        assertEquals("Tax rate", context.getString(R.string.edit_hospital_irpf_label))
+        assertEquals("Tax 15%", context.getString(R.string.hospital_list_irpf_chip, "15%"))
+        assertEquals("No shifts", context.getString(R.string.hospital_list_no_shifts))
     }
 
     @Test
@@ -25,6 +28,9 @@ class HospitalLocalizationTest {
     fun `spanish locale resolves translated strings`() {
         assertEquals("Mis Hospitales", context.getString(R.string.hospital_list_title))
         assertEquals("Nuevo Hospital", context.getString(R.string.create_hospital_title))
+        assertEquals("IRPF", context.getString(R.string.edit_hospital_irpf_label))
+        assertEquals("IRPF 15%", context.getString(R.string.hospital_list_irpf_chip, "15%"))
+        assertEquals("Sin turnos", context.getString(R.string.hospital_list_no_shifts))
     }
 
     @Test
@@ -39,5 +45,15 @@ class HospitalLocalizationTest {
         val resources = context.resources
         assertEquals("Un centro de trabajo", resources.getQuantityString(R.plurals.hospital_list_count_subtitle, 1, 1))
         assertEquals("3 centros de trabajo", resources.getQuantityString(R.plurals.hospital_list_count_subtitle, 3, 3))
+        assertEquals("1 tipo de turno", resources.getQuantityString(R.plurals.hospital_list_shift_types, 1, 1))
+        assertEquals("3 tipos de turno", resources.getQuantityString(R.plurals.hospital_list_shift_types, 3, 3))
+    }
+
+    @Test
+    @Config(qualifiers = "en")
+    fun `english plurals resolve for both quantities`() {
+        val resources = context.resources
+        assertEquals("1 shift type", resources.getQuantityString(R.plurals.hospital_list_shift_types, 1, 1))
+        assertEquals("3 shift types", resources.getQuantityString(R.plurals.hospital_list_shift_types, 3, 3))
     }
 }

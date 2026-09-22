@@ -122,9 +122,9 @@ class HospitalRepositoryImpl
                     irpf = 15.0f,
                     shifts =
                         listOf(
-                            ShiftType(UUID.randomUUID(), "Mañana", LocalTime.of(8, 0), LocalTime.of(15, 0), 18.50),
-                            ShiftType(UUID.randomUUID(), "Tarde", LocalTime.of(15, 0), LocalTime.of(22, 0), 19.00),
-                            ShiftType(UUID.randomUUID(), "Noche", LocalTime.of(22, 0), LocalTime.of(8, 0), 23.00),
+                            ShiftType(UUID.randomUUID(), "Morning", LocalTime.of(8, 0), LocalTime.of(15, 0), 18.50),
+                            ShiftType(UUID.randomUUID(), "Afternoon", LocalTime.of(15, 0), LocalTime.of(22, 0), 19.00),
+                            ShiftType(UUID.randomUUID(), "Night", LocalTime.of(22, 0), LocalTime.of(8, 0), 23.00),
                         ),
                 ),
                 Hospital(
@@ -134,8 +134,8 @@ class HospitalRepositoryImpl
                     irpf = 17.5f,
                     shifts =
                         listOf(
-                            ShiftType(UUID.randomUUID(), "Mañana", LocalTime.of(8, 0), LocalTime.of(15, 0), 17.75),
-                            ShiftType(UUID.randomUUID(), "Noche", LocalTime.of(22, 0), LocalTime.of(8, 0), 22.50),
+                            ShiftType(UUID.randomUUID(), "Morning", LocalTime.of(8, 0), LocalTime.of(15, 0), 17.75),
+                            ShiftType(UUID.randomUUID(), "Night", LocalTime.of(22, 0), LocalTime.of(8, 0), 22.50),
                         ),
                 ),
                 Hospital(
@@ -145,12 +145,12 @@ class HospitalRepositoryImpl
                     irpf = 20.0f,
                     shifts =
                         listOf(
-                            ShiftType(UUID.randomUUID(), "Mañana", LocalTime.of(8, 0), LocalTime.of(15, 0), 21.00),
-                            ShiftType(UUID.randomUUID(), "Tarde", LocalTime.of(15, 0), LocalTime.of(22, 0), 21.50),
-                            ShiftType(UUID.randomUUID(), "Noche", LocalTime.of(22, 0), LocalTime.of(8, 0), 26.00),
+                            ShiftType(UUID.randomUUID(), "Morning", LocalTime.of(8, 0), LocalTime.of(15, 0), 21.00),
+                            ShiftType(UUID.randomUUID(), "Afternoon", LocalTime.of(15, 0), LocalTime.of(22, 0), 21.50),
+                            ShiftType(UUID.randomUUID(), "Night", LocalTime.of(22, 0), LocalTime.of(8, 0), 26.00),
                             ShiftType(
                                 UUID.randomUUID(),
-                                "Fin de semana",
+                                "Weekend",
                                 LocalTime.of(8, 0),
                                 LocalTime.of(20, 0),
                                 28.00,
@@ -164,12 +164,12 @@ class HospitalRepositoryImpl
                     irpf = 20.0f,
                     shifts =
                         listOf(
-                            ShiftType(UUID.randomUUID(), "Mañana", LocalTime.of(8, 0), LocalTime.of(15, 0), 21.00),
-                            ShiftType(UUID.randomUUID(), "Tarde", LocalTime.of(15, 0), LocalTime.of(22, 0), 21.50),
-                            ShiftType(UUID.randomUUID(), "Noche", LocalTime.of(22, 0), LocalTime.of(8, 0), 26.00),
+                            ShiftType(UUID.randomUUID(), "Morning", LocalTime.of(8, 0), LocalTime.of(15, 0), 21.00),
+                            ShiftType(UUID.randomUUID(), "Afternoon", LocalTime.of(15, 0), LocalTime.of(22, 0), 21.50),
+                            ShiftType(UUID.randomUUID(), "Night", LocalTime.of(22, 0), LocalTime.of(8, 0), 26.00),
                             ShiftType(
                                 UUID.randomUUID(),
-                                "Fin de semana",
+                                "Weekend",
                                 LocalTime.of(8, 0),
                                 LocalTime.of(20, 0),
                                 28.00,
@@ -183,8 +183,8 @@ class HospitalRepositoryImpl
                     irpf = 17.5f,
                     shifts =
                         listOf(
-                            ShiftType(UUID.randomUUID(), "Mañana", LocalTime.of(8, 0), LocalTime.of(15, 0), 18.00),
-                            ShiftType(UUID.randomUUID(), "Noche", LocalTime.of(22, 0), LocalTime.of(8, 0), 23.00),
+                            ShiftType(UUID.randomUUID(), "Morning", LocalTime.of(8, 0), LocalTime.of(15, 0), 18.00),
+                            ShiftType(UUID.randomUUID(), "Night", LocalTime.of(22, 0), LocalTime.of(8, 0), 23.00),
                         ),
                 ),
                 Hospital(
@@ -194,9 +194,9 @@ class HospitalRepositoryImpl
                     irpf = 15.0f,
                     shifts =
                         listOf(
-                            ShiftType(UUID.randomUUID(), "Mañana", LocalTime.of(8, 0), LocalTime.of(15, 0), 18.50),
-                            ShiftType(UUID.randomUUID(), "Tarde", LocalTime.of(15, 0), LocalTime.of(22, 0), 19.00),
-                            ShiftType(UUID.randomUUID(), "Noche", LocalTime.of(22, 0), LocalTime.of(8, 0), 23.00),
+                            ShiftType(UUID.randomUUID(), "Morning", LocalTime.of(8, 0), LocalTime.of(15, 0), 18.50),
+                            ShiftType(UUID.randomUUID(), "Afternoon", LocalTime.of(15, 0), LocalTime.of(22, 0), 19.00),
+                            ShiftType(UUID.randomUUID(), "Night", LocalTime.of(22, 0), LocalTime.of(8, 0), 23.00),
                         ),
                 ),
             )

@@ -9,6 +9,11 @@
         <item quantity="other">%1$d centros de trabajo</item>
     </plurals>
     <string name="hospital_list_irpf_chip">IRPF %1$s</string>
+    <string name="hospital_list_no_shifts">Sin turnos</string>
+    <plurals name="hospital_list_shift_types">
+        <item quantity="one">%1$d tipo de turno</item>
+        <item quantity="other">%1$d tipos de turno</item>
+    </plurals>
 
     <!-- Create Hospital -->
     <string name="create_hospital_title">Nuevo Hospital</string>

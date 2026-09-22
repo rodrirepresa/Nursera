@@ -8,7 +8,12 @@
         <item quantity="one">One workplace</item>
         <item quantity="other">%1$d workplaces</item>
     </plurals>
-    <string name="hospital_list_irpf_chip">IRPF %1$s</string>
+    <string name="hospital_list_irpf_chip">Tax %1$s</string>
+    <string name="hospital_list_no_shifts">No shifts</string>
+    <plurals name="hospital_list_shift_types">
+        <item quantity="one">%1$d shift type</item>
+        <item quantity="other">%1$d shift types</item>
+    </plurals>
 
     <!-- Create Hospital -->
     <string name="create_hospital_title">New Hospital</string>
@@ -24,7 +29,7 @@
 
     <!-- Edit Hospital -->
     <string name="edit_hospital_error_message">The hospital could not be loaded.</string>
-    <string name="edit_hospital_irpf_label">Income tax</string>
+    <string name="edit_hospital_irpf_label">Tax rate</string>
     <string name="edit_hospital_irpf_placeholder">24</string>
     <string name="edit_hospital_irpf_suffix">%</string>
     <string name="edit_hospital_shifts_section_title">Shifts</string>
@@ -45,7 +50,7 @@
     <string name="validation_shift_name_too_long">Up to 60 characters</string>
     <string name="validation_invalid_number">Invalid number</string>
     <string name="validation_enter_valid_number">Enter a valid number</string>
-    <string name="validation_irpf_out_of_range">Income tax must be between 0 and 100</string>
+    <string name="validation_irpf_out_of_range">Tax rate must be between 0 and 100</string>
     <string name="validation_rate_must_be_positive">Must be greater than 0</string>
     <string name="validation_time_format">Format HH:mm</string>
     <string name="validation_start_before_end">Must be before the end time</string>

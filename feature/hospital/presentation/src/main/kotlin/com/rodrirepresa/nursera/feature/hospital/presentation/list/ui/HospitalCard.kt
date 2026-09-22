@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -60,8 +61,8 @@ internal fun HospitalCard(
 
                 val label =
                     when (val size = hospital.shifts.size) {
-                        0 -> "Sin turnos"
-                        else -> "$size tipos de turnos"
+                        0 -> stringResource(R.string.hospital_list_no_shifts)
+                        else -> pluralStringResource(R.plurals.hospital_list_shift_types, size, size)
                     }
 
                 Text(

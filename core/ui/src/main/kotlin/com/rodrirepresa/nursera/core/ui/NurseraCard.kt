@@ -74,7 +74,7 @@ fun NurseraCard(
 @Composable
 private fun NurseraCardPreview() {
     NurseraCard(backgroundColor = Color(0xFFDAF5F0)) {
-        Text("Turno de mañana", style = MaterialTheme.typography.bodyMedium)
+        Text("Morning shift", style = MaterialTheme.typography.bodyMedium)
     }
 }
 
@@ -82,7 +82,7 @@ private fun NurseraCardPreview() {
 @Composable
 private fun NurseraCardPressedPreview() {
     NurseraCard(backgroundColor = Color(0xFFDAF5F0), forcePressed = true) {
-        Text("Turno de mañana", style = MaterialTheme.typography.bodyMedium)
+        Text("Morning shift", style = MaterialTheme.typography.bodyMedium)
     }
 }
 
@@ -90,6 +90,6 @@ private fun NurseraCardPressedPreview() {
 @Composable
 private fun NurseraCardCustomColorPreview() {
     NurseraCard(backgroundColor = Color(0xFFFF6B6B)) {
-        Text("Turno seleccionado", style = MaterialTheme.typography.bodyMedium)
+        Text("Selected shift", style = MaterialTheme.typography.bodyMedium)
     }
 }

@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import java.text.Normalizer
 import java.time.LocalTime
 import java.time.YearMonth
 import javax.inject.Inject
@@ -176,12 +177,11 @@ private fun resolveShiftDescriptor(
 }
 
 private fun normalizeName(value: String): String =
-    value
-        .lowercase()
-        .replace(".", "")
-        .replace("clínica", "clinica")
+    Normalizer
+        .normalize(value.lowercase(), Normalizer.Form.NFD)
+        .replace(Regex("\\p{M}+"), "")
         .replace("hospital", "h")
-        .replace(" ", "")
+        .replace(Regex("[^a-z0-9]"), "")
 
 private fun computeShiftHours(
     start: LocalTime,

@@ -420,8 +420,8 @@ private fun EditHospitalLoadedContentPreview() {
                 irpf = "18",
                 shifts =
                     persistentListOf(
-                        ShiftItem.Existing(ShiftUiModel(id = UUID.randomUUID(), "Mañana", "08:00–15:00", "18.50€/h")),
-                        ShiftItem.Existing(ShiftUiModel(id = UUID.randomUUID(), "Tarde", "15:00–22:00", "19.00€/h")),
+                        ShiftItem.Existing(ShiftUiModel(id = UUID.randomUUID(), "Morning", "08:00–15:00", "18.50€/h")),
+                        ShiftItem.Existing(ShiftUiModel(id = UUID.randomUUID(), "Afternoon", "15:00–22:00", "19.00€/h")),
                     ),
             ),
     )
@@ -442,9 +442,9 @@ private fun EditHospitalSheetPreview() {
                 irpf = "18",
                 shifts =
                     persistentListOf(
-                        ShiftItem.Existing(ShiftUiModel(id = UUID.randomUUID(), "Mañana", "08:00–15:00", "18.50€/h")),
+                        ShiftItem.Existing(ShiftUiModel(id = UUID.randomUUID(), "Morning", "08:00–15:00", "18.50€/h")),
                     ),
-                shiftForm = ShiftFormUiState(name = "Noche", startTime = "22:00", endTime = "08:00"),
+                shiftForm = ShiftFormUiState(name = "Night", startTime = "22:00", endTime = "08:00"),
                 canSaveShiftForm = false,
             ),
     )
@@ -466,10 +466,10 @@ private fun EditHospitalWithSelectionPreview() {
                 shifts =
                     persistentListOf(
                         ShiftItem.Existing(
-                            ShiftUiModel(id = UUID.randomUUID(), "Mañana", "08:00–15:00", "18.50€/h"),
+                            ShiftUiModel(id = UUID.randomUUID(), "Morning", "08:00–15:00", "18.50€/h"),
                             isSelected = true,
                         ),
-                        ShiftItem.Existing(ShiftUiModel(id = UUID.randomUUID(), "Tarde", "15:00–22:00", "19.00€/h")),
+                        ShiftItem.Existing(ShiftUiModel(id = UUID.randomUUID(), "Afternoon", "15:00–22:00", "19.00€/h")),
                     ),
             ),
     )

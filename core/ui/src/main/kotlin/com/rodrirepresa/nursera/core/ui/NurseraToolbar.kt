@@ -90,7 +90,7 @@ private fun NurseraToolbarPreview() {
 @Composable
 private fun NurseraToolbarLongTitlePreview() {
     NurseraToolbar(
-        title = "Hospital Universitario de la Princesa — Urgencias",
+        title = "Hospital Universitario de la Princesa — Emergency",
         onNavigateBack = {},
         iconColor = Color.White,
         applyStatusBarPadding = false,
