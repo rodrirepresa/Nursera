@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
@@ -48,14 +49,14 @@ class MainActivity : ComponentActivity() {
 }
 
 enum class TopLevelDestination(
-    val label: String,
+    @StringRes val labelRes: Int,
     val icon: ImageVector,
     val route: Any,
     val routeClass: KClass<*>,
 ) {
-    HOSPITAL("Hospital", Icons.Default.Home, HospitalGraph, HospitalGraph::class),
-    SCHEDULE("Schedule", Icons.Default.Favorite, ScheduleRoute, ScheduleRoute::class),
-    PROFILE("Profile", Icons.Default.AccountBox, ProfileRoute, ProfileRoute::class),
+    HOSPITAL(R.string.nav_hospitals, Icons.Default.Home, HospitalGraph, HospitalGraph::class),
+    SCHEDULE(R.string.nav_schedule, Icons.Default.Favorite, ScheduleRoute, ScheduleRoute::class),
+    PROFILE(R.string.nav_profile, Icons.Default.AccountBox, ProfileRoute, ProfileRoute::class),
 }
 
 @Composable

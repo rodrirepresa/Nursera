@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import com.rodrirepresa.nursera.core.ui.NurseraCard
 import com.rodrirepresa.nursera.core.ui.NurseraChip
 import com.rodrirepresa.nursera.core.ui.darken
+import com.rodrirepresa.nursera.feature.hospital.presentation.R
 import java.util.UUID
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -80,7 +82,7 @@ internal fun HospitalCard(
                         backgroundColor = Color(0xFFF4D738),
                     ) {
                         Text(
-                            text = "IRPF ${hospital.irpf}",
+                            text = stringResource(R.string.hospital_list_irpf_chip, hospital.irpf),
                             fontSize = 7.sp,
                             lineHeight = 14.sp,
                             style = MaterialTheme.typography.bodySmall,

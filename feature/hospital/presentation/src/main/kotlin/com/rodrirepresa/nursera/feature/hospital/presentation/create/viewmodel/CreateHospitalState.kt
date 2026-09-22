@@ -1,5 +1,6 @@
 package com.rodrirepresa.nursera.feature.hospital.presentation.create.viewmodel
 
+import androidx.annotation.StringRes
 import com.adidas.mvi.LoggableState
 import com.rodrirepresa.nursera.feature.hospital.presentation.create.model.ShiftFormUiState
 import kotlinx.collections.immutable.ImmutableList
@@ -13,9 +14,9 @@ sealed interface CreateHospitalState : LoggableState {
     data class Loaded(
         val hospitalColor: Int = 0,
         val name: String = "",
-        val nameError: String? = null,
+        @StringRes val nameError: Int? = null,
         val irpf: String = "",
-        val irpfError: String? = null,
+        @StringRes val irpfError: Int? = null,
         val shifts: ImmutableList<CreateShiftItem> = persistentListOf(),
         val shiftForm: ShiftFormUiState? = null,
         val isShiftFormSaving: Boolean = false,

@@ -1,5 +1,6 @@
 package com.rodrirepresa.nursera.feature.hospital.presentation.create.viewmodel
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.adidas.mvi.MviHost
@@ -9,6 +10,7 @@ import com.adidas.mvi.transform.StateTransform
 import com.rodrirepresa.nursera.core.common.DispatcherProvider
 import com.rodrirepresa.nursera.feature.hospital.domain.usecase.CreateHospitalUseCase
 import com.rodrirepresa.nursera.feature.hospital.domain.usecase.GetRandomHospitalColorUseCase
+import com.rodrirepresa.nursera.feature.hospital.presentation.R
 import com.rodrirepresa.nursera.feature.hospital.presentation.create.model.ShiftFormUiState
 import com.rodrirepresa.nursera.feature.hospital.presentation.edit.validators.isValid
 import com.rodrirepresa.nursera.feature.hospital.presentation.edit.validators.validateIrpf
@@ -162,9 +164,10 @@ internal class CreateHospitalViewModel
         private fun currentLoaded(): CreateHospitalState.Loaded? = state.value.view as? CreateHospitalState.Loaded
     }
 
-private fun validateName(name: String): String? =
+@StringRes
+private fun validateName(name: String): Int? =
     when {
-        name.length > 30 -> "Máximo 30 caracteres"
+        name.length > 30 -> R.string.validation_hospital_name_too_long
         else -> null
     }
 

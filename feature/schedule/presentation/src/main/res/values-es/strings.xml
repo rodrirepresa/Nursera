@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Schedule -->
+    <string name="schedule_title">Mi Calendario</string>
+    <string name="schedule_error_message">No se pudo cargar el calendario.</string>
+    <string name="schedule_previous_month_description">Mes anterior</string>
+    <string name="schedule_next_month_description">Mes siguiente</string>
+    <string name="schedule_back_to_calendar_description">Volver al calendario</string>
+    <string name="schedule_switch_to_week_description">Ver semana</string>
+    <string name="schedule_no_shifts_for_day">Sin turnos este día</string>
+    <string name="schedule_delete_selected_shifts_description">Eliminar turnos seleccionados</string>
+    <string name="schedule_add_shift_description">Añadir turno</string>
+    <string name="schedule_add_shift_pick_hospital">Selecciona un hospital</string>
+    <string name="schedule_add_shift_pick_shift">Selecciona un turno</string>
+    <string name="schedule_add_shift_back_to_hospitals">Volver a hospitales</string>
+    <string name="schedule_day_shifts_title">Turnos del día</string>
+    <string name="schedule_add_shift_no_hospitals">No tienes hospitales creados todavía</string>
+    <string name="schedule_next_shift_label">Próximo turno</string>
+    <string name="schedule_next_break_label">Próximo descanso</string>
+    <string name="schedule_vacation_label">días libres consecutivos</string>
+    <string name="schedule_vacation_range_same_month">del %1$d al %2$d de %3$s</string>
+    <string name="schedule_vacation_range_diff_month">del %1$d de %2$s al %3$d de %4$s</string>
+</resources>

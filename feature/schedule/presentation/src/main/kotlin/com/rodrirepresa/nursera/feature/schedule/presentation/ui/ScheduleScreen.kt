@@ -42,6 +42,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -67,6 +68,7 @@ import com.rodrirepresa.nursera.core.ui.NurseraErrorView
 import com.rodrirepresa.nursera.core.ui.NurseraHeader
 import com.rodrirepresa.nursera.core.ui.NurseraIconButton
 import com.rodrirepresa.nursera.core.ui.NurseraLoadingView
+import com.rodrirepresa.nursera.core.ui.currentLocale
 import com.rodrirepresa.nursera.core.ui.darken
 import com.rodrirepresa.nursera.feature.schedule.presentation.R
 import com.rodrirepresa.nursera.feature.schedule.presentation.viewmodel.AddShiftSheetUiState
@@ -99,9 +101,14 @@ private val OutOfMonthText = Color(0xFFBBBBBB)
 // Pager is anchored at the middle page so swiping in both directions works indefinitely
 private const val PAGER_CENTER = Int.MAX_VALUE / 2
 
-private val monthTitleFormatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale("es"))
+private fun monthTitleFormatter(locale: Locale) = DateTimeFormatter.ofPattern("MMMM yyyy", locale)
 
-private fun YearMonth.toTitle(): String = monthTitleFormatter.format(this).replaceFirstChar { it.uppercase() }
+@Composable
+@ReadOnlyComposable
+private fun YearMonth.toTitle(): String {
+    val locale = currentLocale()
+    return monthTitleFormatter(locale).format(this).replaceFirstChar { it.uppercase(locale) }
+}
 
 @Composable
 internal fun ScheduleScreen(viewModel: ScheduleViewModel = hiltViewModel()) {
@@ -759,7 +766,7 @@ private fun DayCellLabel(
     }
 }
 
-private val vacationMonthFormatter = DateTimeFormatter.ofPattern("MMMM", Locale("es"))
+private fun vacationMonthFormatter(locale: Locale) = DateTimeFormatter.ofPattern("MMMM", locale)
 
 @Composable
 private fun TodayStatusSection(
@@ -814,9 +821,11 @@ private fun VacationCard(
     status: TodayStatusUiModel.VacationDays,
     modifier: Modifier = Modifier,
 ) {
+    val locale = currentLocale()
+    val formatter = vacationMonthFormatter(locale)
     val rangeText =
         if (status.startDate.month == status.endDate.month) {
-            val monthName = vacationMonthFormatter.format(status.startDate).replaceFirstChar { it.uppercase() }
+            val monthName = formatter.format(status.startDate).replaceFirstChar { it.uppercase(locale) }
             stringResource(
                 R.string.schedule_vacation_range_same_month,
                 status.startDate.dayOfMonth,
@@ -824,8 +833,8 @@ private fun VacationCard(
                 monthName,
             )
         } else {
-            val startMonth = vacationMonthFormatter.format(status.startDate).replaceFirstChar { it.uppercase() }
-            val endMonth = vacationMonthFormatter.format(status.endDate).replaceFirstChar { it.uppercase() }
+            val startMonth = formatter.format(status.startDate).replaceFirstChar { it.uppercase(locale) }
+            val endMonth = formatter.format(status.endDate).replaceFirstChar { it.uppercase(locale) }
             stringResource(
                 R.string.schedule_vacation_range_diff_month,
                 status.startDate.dayOfMonth,
@@ -836,7 +845,7 @@ private fun VacationCard(
         }
     Column {
         Text(
-            text = "Próximo descanso".uppercase(),
+            text = stringResource(R.string.schedule_next_break_label).uppercase(),
             style = MaterialTheme.typography.labelSmall,
             color = Color.Gray,
             modifier = Modifier.padding(start = 20.dp, bottom = 4.dp),

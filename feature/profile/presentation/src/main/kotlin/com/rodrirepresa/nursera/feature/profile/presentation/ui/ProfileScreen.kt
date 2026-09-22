@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,6 +45,7 @@ import com.rodrirepresa.nursera.core.ui.NurseraErrorView
 import com.rodrirepresa.nursera.core.ui.NurseraHeader
 import com.rodrirepresa.nursera.core.ui.NurseraIconButton
 import com.rodrirepresa.nursera.core.ui.NurseraLoadingView
+import com.rodrirepresa.nursera.core.ui.currentLocale
 import com.rodrirepresa.nursera.core.ui.darken
 import com.rodrirepresa.nursera.feature.profile.presentation.R
 import com.rodrirepresa.nursera.feature.profile.presentation.viewmodel.HospitalEarningsUiModel
@@ -56,12 +58,18 @@ import kotlinx.collections.immutable.persistentListOf
 import java.text.NumberFormat
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+import java.util.Currency
 import java.util.Locale
 
 private val ScreenBackground = Color(0xFFFFF8F0)
 private val BorderColor = Color(0xFF1A1A1A)
-private val monthFormatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.forLanguageTag("es"))
-private val euroFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-ES"))
+
+private fun monthFormatter(locale: Locale) = DateTimeFormatter.ofPattern("MMMM yyyy", locale)
+
+/**
+ * Amounts are always paid in euros, but grouping and symbol placement follow the device locale.
+ */
+private fun euroFormat(locale: Locale): NumberFormat = NumberFormat.getCurrencyInstance(locale).apply { currency = Currency.getInstance("EUR") }
 
 @Composable
 internal fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
@@ -267,13 +275,13 @@ private fun DonutChart(
                 color = Color(0xFF666666),
             )
             Text(
-                text = euroFormat.format(totalNetAmount),
+                text = euroFormat(currentLocale()).format(totalNetAmount),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.ExtraBold,
                 textAlign = TextAlign.Center,
             )
             Text(
-                text = stringResource(R.string.profile_total_gross_compact, euroFormat.format(totalGrossAmount)),
+                text = stringResource(R.string.profile_total_gross_compact, euroFormat(currentLocale()).format(totalGrossAmount)),
                 style = MaterialTheme.typography.labelSmall,
                 color = Color(0xFF666666),
             )
@@ -344,12 +352,12 @@ private fun MonthlyStatsCard(
                 style = MaterialTheme.typography.bodyMedium,
             )
             Text(
-                text = stringResource(R.string.profile_total_net, euroFormat.format(summary.totalNetAmount)),
+                text = stringResource(R.string.profile_total_net, euroFormat(currentLocale()).format(summary.totalNetAmount)),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = stringResource(R.string.profile_total_gross, euroFormat.format(summary.totalGrossAmount)),
+                text = stringResource(R.string.profile_total_gross, euroFormat(currentLocale()).format(summary.totalGrossAmount)),
                 style = MaterialTheme.typography.bodySmall,
             )
             Text(
@@ -406,7 +414,7 @@ private fun HospitalBreakdownRow(
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = euroFormat.format(hospital.netAmount),
+                    text = euroFormat(currentLocale()).format(hospital.netAmount),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
                     color = Color(hospital.hospitalColor).darken(),
@@ -417,7 +425,7 @@ private fun HospitalBreakdownRow(
                     color = Color(hospital.hospitalColor).darken(),
                 )
                 Text(
-                    text = stringResource(R.string.profile_gross_and_irpf, euroFormat.format(hospital.grossAmount), hospital.irpf),
+                    text = stringResource(R.string.profile_gross_and_irpf, euroFormat(currentLocale()).format(hospital.grossAmount), hospital.irpf),
                     style = MaterialTheme.typography.labelSmall,
                     color = Color(hospital.hospitalColor).darken(),
                 )
@@ -426,7 +434,12 @@ private fun HospitalBreakdownRow(
     }
 }
 
-private fun YearMonth.toUiTitle(): String = monthFormatter.format(this).replaceFirstChar { it.uppercase() }
+@Composable
+@ReadOnlyComposable
+private fun YearMonth.toUiTitle(): String {
+    val locale = currentLocale()
+    return monthFormatter(locale).format(this).replaceFirstChar { it.uppercase(locale) }
+}
 
 @Preview(showBackground = true)
 @Composable

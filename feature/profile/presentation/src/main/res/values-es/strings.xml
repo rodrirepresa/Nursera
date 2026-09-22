@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="profile_title">Perfil</string>
+    <string name="profile_subtitle">Resumen mensual</string>
+    <string name="profile_error_message">No se pudo cargar el resumen de ingresos.</string>
+    <string name="profile_previous_month">Mes anterior</string>
+    <string name="profile_next_month">Mes siguiente</string>
+    <string name="profile_total_net_label">Total neto</string>
+    <string name="profile_breakdown_title">Desglose por hospital</string>
+    <string name="profile_no_data">No hay turnos registrados este mes.</string>
+    <string name="profile_monthly_stats_title">Resumen del mes</string>
+    <string name="profile_shifts_count">Turnos trabajados: %1$d</string>
+    <string name="profile_total_net">Neto estimado: %1$s</string>
+    <string name="profile_total_gross">Bruto estimado: %1$s</string>
+    <string name="profile_total_gross_compact">Bruto: %1$s</string>
+    <string name="profile_top_hospital_none">Hospital principal: —</string>
+    <string name="profile_top_hospital">Hospital principal: %1$s</string>
+    <string name="profile_shift_count">%1$d turnos</string>
+    <string name="profile_percentage">%1$.1f%%</string>
+    <string name="profile_gross_and_irpf">Bruto %1$s · IRPF %2$.1f%%</string>
+</resources>

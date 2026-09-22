@@ -35,6 +35,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -109,12 +110,12 @@ internal fun NurseraNavBar1(
                 ) {
                     Icon(
                         imageVector = destination.icon,
-                        contentDescription = destination.label,
+                        contentDescription = stringResource(destination.labelRes),
                         tint = if (selected) Ink else Color(0xFF888888),
                         modifier = Modifier.size(20.dp),
                     )
                     Text(
-                        text = destination.label.uppercase(),
+                        text = stringResource(destination.labelRes).uppercase(),
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Black,
                         color = if (selected) Ink else Color(0xFF888888),
@@ -191,12 +192,12 @@ internal fun NurseraNavBar2(
             ) {
                 Icon(
                     imageVector = destination.icon,
-                    contentDescription = destination.label,
+                    contentDescription = stringResource(destination.labelRes),
                     tint = contentColor,
                     modifier = Modifier.size(20.dp),
                 )
                 Text(
-                    text = destination.label.uppercase(),
+                    text = stringResource(destination.labelRes).uppercase(),
                     fontSize = 9.sp,
                     fontWeight = FontWeight.Black,
                     color = contentColor,
@@ -260,7 +261,7 @@ internal fun NurseraNavBar4(
             ) {
                 Icon(
                     imageVector = destination.icon,
-                    contentDescription = destination.label,
+                    contentDescription = stringResource(destination.labelRes),
                     tint = iconColor,
                     modifier = Modifier.size(24.dp),
                 )

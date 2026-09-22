@@ -1,8 +1,12 @@
 package com.rodrirepresa.nursera.feature.hospital.presentation.edit.validators
 
-internal fun validateIrpf(value: String): String? {
+import androidx.annotation.StringRes
+import com.rodrirepresa.nursera.feature.hospital.presentation.R
+
+@StringRes
+internal fun validateIrpf(value: String): Int? {
     if (value.isBlank()) return null
-    val f = value.toFloatOrNull() ?: return "Introduce un número válido"
-    if (f < 0 || f > 100) return "El IRPF debe estar entre 0 y 100"
+    val parsed = value.toFloatOrNull() ?: return R.string.validation_enter_valid_number
+    if (parsed < 0 || parsed > 100) return R.string.validation_irpf_out_of_range
     return null
 }

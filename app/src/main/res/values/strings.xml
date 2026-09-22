@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Nursera</string>
+    <string name="nav_hospitals">Hospitals</string>
+    <string name="nav_schedule">Schedule</string>
+    <string name="nav_profile">Profile</string>
 </resources>

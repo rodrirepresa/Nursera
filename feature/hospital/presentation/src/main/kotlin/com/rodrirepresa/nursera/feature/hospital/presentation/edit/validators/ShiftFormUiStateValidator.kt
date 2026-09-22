@@ -1,5 +1,6 @@
 package com.rodrirepresa.nursera.feature.hospital.presentation.edit.validators
 
+import com.rodrirepresa.nursera.feature.hospital.presentation.R
 import com.rodrirepresa.nursera.feature.hospital.presentation.create.model.ShiftFormUiState
 
 internal fun ShiftFormUiState.withValidation(): ShiftFormUiState =
@@ -7,32 +8,32 @@ internal fun ShiftFormUiState.withValidation(): ShiftFormUiState =
         nameError =
             when {
                 name.isEmpty() -> null
-                name.length > 60 -> "Máximo 60 caracteres"
+                name.length > 60 -> R.string.validation_shift_name_too_long
                 else -> null
             },
         startTimeError =
             when {
                 startTime.isEmpty() -> null
-                !isValidTime(startTime) -> "Formato HH:mm"
+                !isValidTime(startTime) -> R.string.validation_time_format
                 endTime.isNotEmpty() && isValidTime(endTime) &&
-                    startTime >= endTime -> "Debe ser anterior al fin"
+                    startTime >= endTime -> R.string.validation_start_before_end
 
                 else -> null
             },
         endTimeError =
             when {
                 endTime.isEmpty() -> null
-                !isValidTime(endTime) -> "Formato HH:mm"
+                !isValidTime(endTime) -> R.string.validation_time_format
                 startTime.isNotEmpty() && isValidTime(startTime) &&
-                    endTime <= startTime -> "Debe ser posterior al inicio"
+                    endTime <= startTime -> R.string.validation_end_after_start
 
                 else -> null
             },
         hourlyRateError =
             when {
                 hourlyRate.isEmpty() -> null
-                hourlyRate.toDoubleOrNull() == null -> "Número inválido"
-                hourlyRate.toDouble() <= 0 -> "Debe ser mayor que 0"
+                hourlyRate.toDoubleOrNull() == null -> R.string.validation_invalid_number
+                hourlyRate.toDouble() <= 0 -> R.string.validation_rate_must_be_positive
                 else -> null
             },
     )

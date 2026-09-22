@@ -1,33 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Create Hospital -->
-    <string name="create_hospital_title">Nuevo Hospital</string>
-    <string name="create_hospital_name_label">Nombre del hospital</string>
-    <string name="create_hospital_name_placeholder">Máximo 30 caracteres</string>
-    <string name="create_hospital_irpf_placeholder">0 – 100</string>
-    <string name="create_hospital_shifts_section_title">Tipos de turno</string>
-    <string name="create_hospital_add_shift_content_description">Añadir turno</string>
-    <string name="create_hospital_delete_selected_content_description">Eliminar seleccionados</string>
-    <string name="create_hospital_save_button">Guardar hospital</string>
-    <string name="create_hospital_save_shift_button">Guardar turno</string>
+    <!-- Hospital list -->
+    <string name="hospital_list_title">My Hospitals</string>
+    <string name="hospital_list_add_content_description">Add hospital</string>
+    <string name="hospital_list_empty_subtitle">Add your workplaces here</string>
+    <plurals name="hospital_list_count_subtitle">
+        <item quantity="one">One workplace</item>
+        <item quantity="other">%1$d workplaces</item>
+    </plurals>
+    <string name="hospital_list_irpf_chip">IRPF %1$s</string>
 
-    <string name="create_hospital_error_message">No se pudo abrir el formulario.</string>
+    <!-- Create Hospital -->
+    <string name="create_hospital_title">New Hospital</string>
+    <string name="create_hospital_name_label">Hospital name</string>
+    <string name="create_hospital_name_placeholder">Up to 30 characters</string>
+    <string name="create_hospital_irpf_placeholder">0 – 100</string>
+    <string name="create_hospital_shifts_section_title">Shift types</string>
+    <string name="create_hospital_add_shift_content_description">Add shift</string>
+    <string name="create_hospital_delete_selected_content_description">Delete selected</string>
+    <string name="create_hospital_save_button">Save hospital</string>
+    <string name="create_hospital_save_shift_button">Save shift</string>
+    <string name="create_hospital_error_message">The form could not be opened.</string>
 
     <!-- Edit Hospital -->
-    <string name="edit_hospital_error_message">No se pudo cargar el hospital.</string>
-    <string name="edit_hospital_irpf_label">IRPF</string>
+    <string name="edit_hospital_error_message">The hospital could not be loaded.</string>
+    <string name="edit_hospital_irpf_label">Income tax</string>
     <string name="edit_hospital_irpf_placeholder">24</string>
     <string name="edit_hospital_irpf_suffix">%</string>
-    <string name="edit_hospital_shifts_section_title">Turnos</string>
-    <string name="edit_hospital_delete_selected_content_description">Eliminar seleccionados</string>
-    <string name="edit_hospital_add_shift_content_description">Añadir turno</string>
-    <string name="edit_hospital_shift_name_label">Nombre del turno</string>
-    <string name="edit_hospital_shift_name_placeholder">Mañana</string>
-    <string name="edit_hospital_shift_start_label">Inicio</string>
-    <string name="edit_hospital_shift_end_label">Fin</string>
+    <string name="edit_hospital_shifts_section_title">Shifts</string>
+    <string name="edit_hospital_delete_selected_content_description">Delete selected</string>
+    <string name="edit_hospital_add_shift_content_description">Add shift</string>
+    <string name="edit_hospital_shift_name_label">Shift name</string>
+    <string name="edit_hospital_shift_name_placeholder">Morning</string>
+    <string name="edit_hospital_shift_start_label">Start</string>
+    <string name="edit_hospital_shift_end_label">End</string>
     <string name="edit_hospital_time_placeholder">HH:mm</string>
-    <string name="edit_hospital_hourly_rate_label">€/hora</string>
+    <string name="edit_hospital_hourly_rate_label">€/hour</string>
     <string name="edit_hospital_hourly_rate_placeholder">0</string>
-    <string name="edit_hospital_save_shift_button">Guardar turno</string>
-    <string name="edit_hospital_add_shift_sheet_title">Nuevo turno</string>
+    <string name="edit_hospital_save_shift_button">Save shift</string>
+    <string name="edit_hospital_add_shift_sheet_title">New shift</string>
+
+    <!-- Validation -->
+    <string name="validation_hospital_name_too_long">Up to 30 characters</string>
+    <string name="validation_shift_name_too_long">Up to 60 characters</string>
+    <string name="validation_invalid_number">Invalid number</string>
+    <string name="validation_enter_valid_number">Enter a valid number</string>
+    <string name="validation_irpf_out_of_range">Income tax must be between 0 and 100</string>
+    <string name="validation_rate_must_be_positive">Must be greater than 0</string>
+    <string name="validation_time_format">Format HH:mm</string>
+    <string name="validation_start_before_end">Must be before the end time</string>
+    <string name="validation_end_after_start">Must be after the start time</string>
 </resources>

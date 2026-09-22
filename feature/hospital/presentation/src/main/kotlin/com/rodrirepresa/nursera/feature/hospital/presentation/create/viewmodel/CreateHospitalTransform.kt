@@ -1,5 +1,6 @@
 package com.rodrirepresa.nursera.feature.hospital.presentation.create.viewmodel
 
+import androidx.annotation.StringRes
 import com.adidas.mvi.sideeffects.SideEffects
 import com.adidas.mvi.transform.SideEffectTransform
 import com.adidas.mvi.transform.ViewTransform
@@ -19,9 +20,9 @@ internal object CreateHospitalTransform {
 
     data class UpdateForm(
         val name: String,
-        val nameError: String?,
+        @StringRes val nameError: Int?,
         val irpf: String,
-        val irpfError: String?,
+        @StringRes val irpfError: Int?,
         val canSave: Boolean,
     ) : ViewTransform<CreateHospitalState, CreateHospitalSideEffect>() {
         override fun mutate(currentState: CreateHospitalState): CreateHospitalState {

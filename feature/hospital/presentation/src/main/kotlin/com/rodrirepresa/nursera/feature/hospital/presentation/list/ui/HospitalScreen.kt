@@ -12,11 +12,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.adidas.mvi.compose.MviContainer
 import com.rodrirepresa.nursera.core.ui.NurseraHeader
 import com.rodrirepresa.nursera.core.ui.NurseraLoadingView
+import com.rodrirepresa.nursera.feature.hospital.presentation.R
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.viewmodel.HospitalIntent
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.viewmodel.HospitalSideEffect
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.viewmodel.HospitalState
@@ -60,18 +63,22 @@ private fun HospitalScreenLoaded(
 ) {
     Column {
         val label =
-            when (val size = hospitalList.size) {
-                0 -> "Añade aquí tus centros de trabajo"
-                1 -> "Un centro de trabajo"
-                else -> "$size centros de trabajo"
+            if (hospitalList.isEmpty()) {
+                stringResource(R.string.hospital_list_empty_subtitle)
+            } else {
+                pluralStringResource(
+                    R.plurals.hospital_list_count_subtitle,
+                    hospitalList.size,
+                    hospitalList.size,
+                )
             }
 
         NurseraHeader(
-            title = "Mis Hospitales",
+            title = stringResource(R.string.hospital_list_title),
             subtitle = label,
             onIconClick = { executeIntent(HospitalIntent.OpenCreateHospital) },
             icon = Icons.Filled.Add,
-            iconContentDescription = "add",
+            iconContentDescription = stringResource(R.string.hospital_list_add_content_description),
         )
 
         LazyColumn(
