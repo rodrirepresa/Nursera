@@ -9,7 +9,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.rodrirepresa.nursera.R
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.navigation.HospitalGraph
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.navigation.HospitalList
-import com.rodrirepresa.nursera.feature.profile.presentation.navigation.ProfileRoute
+import com.rodrirepresa.nursera.feature.earnings.presentation.navigation.EarningsRoute
 import com.rodrirepresa.nursera.feature.schedule.presentation.navigation.ScheduleRoute
 import kotlin.reflect.KClass
 
@@ -31,5 +31,5 @@ enum class TopLevelDestination(
 ) {
     HOSPITAL(R.string.nav_hospitals, Icons.Default.Home, HospitalGraph, HospitalGraph::class, HospitalList::class),
     SCHEDULE(R.string.nav_schedule, Icons.Default.DateRange, ScheduleRoute, ScheduleRoute::class, ScheduleRoute::class),
-    PROFILE(R.string.nav_profile, Icons.Default.Person, ProfileRoute, ProfileRoute::class, ProfileRoute::class),
+    EARNINGS(R.string.nav_earnings, Icons.Default.Person, EarningsRoute, EarningsRoute::class, EarningsRoute::class),
 }

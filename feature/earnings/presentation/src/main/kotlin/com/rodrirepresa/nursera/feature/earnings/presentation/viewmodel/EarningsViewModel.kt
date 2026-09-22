@@ -1,0 +1,194 @@
+package com.rodrirepresa.nursera.feature.earnings.presentation.viewmodel
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.adidas.mvi.MviHost
+import com.adidas.mvi.Reducer
+import com.adidas.mvi.State
+import com.adidas.mvi.transform.StateTransform
+import com.rodrirepresa.nursera.core.common.DispatcherProvider
+import com.rodrirepresa.nursera.feature.hospital.domain.model.Hospital
+import com.rodrirepresa.nursera.feature.hospital.domain.model.ShiftType
+import com.rodrirepresa.nursera.feature.hospital.domain.usecase.ObserveHospitalsUseCase
+import com.rodrirepresa.nursera.feature.schedule.domain.model.ScheduledShift
+import com.rodrirepresa.nursera.feature.schedule.domain.usecase.ObserveMonthScheduleUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import java.text.Normalizer
+import java.time.LocalTime
+import java.time.YearMonth
+import javax.inject.Inject
+import kotlin.math.max
+
+@HiltViewModel
+internal class EarningsViewModel
+    @Inject
+    constructor(
+        dispatcherProvider: DispatcherProvider,
+        private val observeMonthScheduleUseCase: ObserveMonthScheduleUseCase,
+        private val observeHospitalsUseCase: ObserveHospitalsUseCase,
+    ) : ViewModel(), MviHost<EarningsIntent, State<EarningsState, EarningsSideEffect>> {
+        private val reducer: Reducer<EarningsIntent, State<EarningsState, EarningsSideEffect>> =
+            com.adidas.mvi.reducer.Reducer(
+                coroutineScope = viewModelScope,
+                defaultDispatcher = dispatcherProvider.default(),
+                initialInnerState = EarningsState.Loading,
+                intentExecutor = this::executeIntent,
+            )
+
+        override val state: StateFlow<State<EarningsState, EarningsSideEffect>> = reducer.state
+
+        init {
+            execute(EarningsIntent.Load)
+        }
+
+        override fun execute(intent: EarningsIntent) {
+            reducer.executeIntent(intent)
+        }
+
+        private fun executeIntent(intent: EarningsIntent): Flow<StateTransform<State<EarningsState, EarningsSideEffect>>> =
+            when (intent) {
+                is EarningsIntent.Load -> executeLoad()
+                is EarningsIntent.SetDisplayedMonth -> executeSetDisplayedMonth(intent.month)
+            }
+
+        private fun executeLoad(): Flow<StateTransform<State<EarningsState, EarningsSideEffect>>> =
+            flow {
+                val todayMonth = YearMonth.now()
+                emit(EarningsTransform.InitLoaded(todayMonth))
+                emitAllObserveMonth(todayMonth)
+            }
+
+        private fun executeSetDisplayedMonth(month: YearMonth): Flow<StateTransform<State<EarningsState, EarningsSideEffect>>> =
+            flow {
+                emit(EarningsTransform.SetDisplayedMonth(month))
+                val loaded = state.value.view as? EarningsState.Loaded ?: return@flow
+                if (loaded.summariesByMonth.containsKey(month)) return@flow
+                emitAllObserveMonth(month)
+            }
+
+        private suspend fun kotlinx.coroutines.flow.FlowCollector<StateTransform<State<EarningsState, EarningsSideEffect>>>.emitAllObserveMonth(
+            month: YearMonth,
+        ) {
+            observeEarningsMonth(month).collect { emit(it) }
+        }
+
+        private fun observeEarningsMonth(month: YearMonth): Flow<StateTransform<State<EarningsState, EarningsSideEffect>>> =
+            combine(
+                observeMonthScheduleUseCase(month),
+                observeHospitalsUseCase(),
+            ) { shifts, hospitals ->
+                buildMonthSummary(
+                    month = month,
+                    shifts = shifts,
+                    hospitals = hospitals,
+                )
+            }.map { summary ->
+                EarningsTransform.UpsertMonthSummary(month = month, summary = summary) as StateTransform<State<EarningsState, EarningsSideEffect>>
+            }.catch { emit(EarningsTransform.ShowError) }
+    }
+
+private data class ShiftDescriptor(
+    val hospital: Hospital,
+    val shiftType: ShiftType,
+)
+
+private fun buildMonthSummary(
+    month: YearMonth,
+    shifts: List<ScheduledShift>,
+    hospitals: List<Hospital>,
+): EarningsMonthSummaryUiModel {
+    val grouped =
+        shifts.groupBy { shift ->
+            val descriptor = resolveShiftDescriptor(shift, hospitals)
+            descriptor?.hospital?.name ?: shift.hospitalName
+        }
+
+    val hospitalSummaries =
+        grouped.mapNotNull { (hospitalName, hospitalShifts) ->
+            val resolved = hospitalShifts.mapNotNull { shift -> resolveShiftDescriptor(shift, hospitals) }
+            if (resolved.isEmpty()) return@mapNotNull null
+
+            val grossAmount =
+                resolved.sumOf { descriptor ->
+                    val hours = computeShiftHours(descriptor.shiftType.startTime, descriptor.shiftType.endTime)
+                    hours * descriptor.shiftType.hourlyRate
+                }
+            val hospital = resolved.first().hospital
+            val irpf = hospital.irpf
+            val netAmount = grossAmount * (1.0 - (irpf / 100f))
+            HospitalEarningsUiModel(
+                hospitalName = hospitalName,
+                hospitalColor = hospital.color,
+                grossAmount = grossAmount,
+                netAmount = netAmount,
+                irpf = irpf,
+                percentage = 0f,
+                shiftsCount = hospitalShifts.size,
+            )
+        }
+
+    val totalGrossAmount = hospitalSummaries.sumOf { it.grossAmount }
+    val totalNetAmount = hospitalSummaries.sumOf { it.netAmount }
+    val withPercentages =
+        hospitalSummaries
+            .map { summary ->
+                val percentage =
+                    if (totalNetAmount <= 0.0) {
+                        0f
+                    } else {
+                        ((summary.netAmount / totalNetAmount) * 100.0).toFloat()
+                    }
+                summary.copy(percentage = percentage)
+            }.sortedByDescending { it.netAmount }
+            .toPersistentList()
+
+    return EarningsMonthSummaryUiModel(
+        month = month,
+        totalGrossAmount = totalGrossAmount,
+        totalNetAmount = totalNetAmount,
+        totalShifts = shifts.size,
+        hospitals = withPercentages,
+    )
+}
+
+private fun resolveShiftDescriptor(
+    shift: ScheduledShift,
+    hospitals: List<Hospital>,
+): ShiftDescriptor? {
+    val hospital =
+        hospitals.firstOrNull { it.id == shift.hospitalId }
+            ?: hospitals.firstOrNull { it.color == shift.hospitalColor }
+            ?: hospitals.firstOrNull { normalizeName(it.name) == normalizeName(shift.hospitalName) }
+            ?: return null
+
+    val shiftType =
+        hospital.shifts.firstOrNull { normalizeName(it.name) == normalizeName(shift.shiftName) && it.startTime == shift.startTime }
+            ?: hospital.shifts.firstOrNull { normalizeName(it.name) == normalizeName(shift.shiftName) }
+            ?: return null
+
+    return ShiftDescriptor(hospital = hospital, shiftType = shiftType)
+}
+
+private fun normalizeName(value: String): String =
+    Normalizer
+        .normalize(value.lowercase(), Normalizer.Form.NFD)
+        .replace(Regex("\\p{M}+"), "")
+        .replace("hospital", "h")
+        .replace(Regex("[^a-z0-9]"), "")
+
+private fun computeShiftHours(
+    start: LocalTime,
+    end: LocalTime,
+): Double {
+    val startMinutes = start.hour * 60 + start.minute
+    val endMinutes = end.hour * 60 + end.minute
+    val duration = if (endMinutes > startMinutes) endMinutes - startMinutes else (24 * 60 - startMinutes) + endMinutes
+    return max(duration, 0) / 60.0
+}

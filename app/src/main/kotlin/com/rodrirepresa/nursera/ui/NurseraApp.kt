@@ -15,7 +15,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.navigation.HospitalGraph
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.navigation.hospitalGraph
-import com.rodrirepresa.nursera.feature.profile.presentation.navigation.profileScreen
+import com.rodrirepresa.nursera.feature.earnings.presentation.navigation.earningsScreen
 import com.rodrirepresa.nursera.feature.schedule.presentation.navigation.scheduleScreen
 import com.rodrirepresa.nursera.navigation.TopLevelDestination
 import com.rodrirepresa.nursera.navigation.isSelected
@@ -59,7 +59,7 @@ fun NurseraApp() {
         ) {
             hospitalGraph(navController)
             scheduleScreen()
-            profileScreen()
+            earningsScreen()
         }
     }
 }

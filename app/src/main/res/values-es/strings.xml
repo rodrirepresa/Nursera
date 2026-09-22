@@ -1,5 +1,5 @@
 <resources>
     <string name="nav_hospitals">Hospitales</string>
     <string name="nav_schedule">Calendario</string>
-    <string name="nav_profile">Perfil</string>
+    <string name="nav_earnings">Ingresos</string>
 </resources>
