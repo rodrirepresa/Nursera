@@ -16,8 +16,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rodrirepresa.nursera.TopLevelDestination
 import com.rodrirepresa.nursera.core.ui.NurseraPalette
+import com.rodrirepresa.nursera.navigation.TopLevelDestination
 import com.rodrirepresa.nursera.ui.theme.NurseraTheme
 
 private val TopBorderWidth = 2.dp
