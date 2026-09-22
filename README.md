@@ -70,7 +70,7 @@ The presentation layer follows **MVI**:
 - `SideEffect` for one-off events
 - `Transform` for controlled state mutation
 
-The project conventions are documented in [`CLAUDE.md`](./CLAUDE.md).
+The project conventions are documented in [`CLAUDE.md`](./CLAUDE.md) and [`docs/ai/`](./docs/ai).
 
 ## 🛠️ Tech stack
 
