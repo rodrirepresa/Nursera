@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -161,5 +162,30 @@ class ProfileViewModelTest {
             assertTrue(summary != null)
             assertEquals(0.0, summary!!.totalGrossAmount, 0.001)
             assertEquals(0.0, summary.totalNetAmount, 0.001)
+        }
+
+    @Test
+    fun `loading profile shows error when month observation fails`() =
+        runTest(scheduler) {
+            val failingObserveMonthScheduleUseCase =
+                object : ObserveMonthScheduleUseCase {
+                    override fun invoke(month: YearMonth): Flow<List<ScheduledShift>> =
+                        flow { error("schedule unavailable") }
+                }
+
+            val failingViewModel =
+                ProfileViewModel(
+                    dispatcherProvider = dispatcherProvider,
+                    observeMonthScheduleUseCase = failingObserveMonthScheduleUseCase,
+                    observeHospitalsUseCase = observeHospitalsUseCase,
+                )
+
+            failingViewModel.state.test {
+                assertTrue(awaitItem().view is ProfileState.Loading)
+                advanceUntilIdle()
+                awaitItem() // InitLoaded
+                assertTrue(awaitItem().view is ProfileState.Error)
+                cancelAndIgnoreRemainingEvents()
+            }
         }
 }

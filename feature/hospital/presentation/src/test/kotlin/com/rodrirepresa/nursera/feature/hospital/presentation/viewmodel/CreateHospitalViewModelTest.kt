@@ -27,48 +27,53 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
 class CreateHospitalViewModelTest {
     private val scheduler = TestCoroutineScheduler()
     private val testDispatcher = StandardTestDispatcher(scheduler)
 
-    private val dispatcherProvider =
-        object : DispatcherProvider {
-            override fun default() = testDispatcher
-
-            override fun io() = testDispatcher
-
-            override fun main() = testDispatcher
-        }
+    private val dispatcherProvider = object : DispatcherProvider {
+        override fun default() = testDispatcher
+        override fun io() = testDispatcher
+        override fun main() = testDispatcher
+    }
 
     private var createCalled = false
-    private var lastCreatedColor: Int = 0
+    private var lastCreatedColor = 0
+    private var throwOnRandomColor = false
 
-    private val createHospital =
-        object : CreateHospitalUseCase {
-            override suspend fun invoke(
-                name: String,
-                color: Int,
-                irpf: Float,
-                shifts: List<ShiftType>,
-            ) {
-                createCalled = true
-                lastCreatedColor = color
-            }
+    private val createHospital = object : CreateHospitalUseCase {
+        override suspend fun invoke(
+            name: String,
+            color: Int,
+            irpf: Float,
+            shifts: List<ShiftType>,
+        ) {
+            createCalled = true
+            lastCreatedColor = color
         }
+    }
 
     private val fixedColor = 0xFFDAF5F0.toInt()
-    private val getRandomColor =
-        object : GetRandomHospitalColorUseCase {
-            override fun invoke(): Int = fixedColor
+    private val getRandomColor = object : GetRandomHospitalColorUseCase {
+        override fun invoke(): Int {
+            if (throwOnRandomColor) error("color unavailable")
+            return fixedColor
         }
+    }
 
     private lateinit var viewModel: CreateHospitalViewModel
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
+        throwOnRandomColor = false
+        createCalled = false
+        lastCreatedColor = 0
         viewModel = CreateHospitalViewModel(dispatcherProvider, createHospital, getRandomColor)
     }
 
@@ -78,174 +83,188 @@ class CreateHospitalViewModelTest {
     }
 
     @Test
-    fun `initial state is Form with one empty shift`() =
-        runTest(scheduler) {
-            viewModel.state.test {
-                val state = awaitItem().view
-                assertTrue(state is CreateHospitalState.Loaded)
-                val loaded = state as CreateHospitalState.Loaded
-                assertEquals(1, loaded.shifts.size)
-                assertFalse(loaded.canSave)
-                cancelAndIgnoreRemainingEvents()
-            }
+    fun `load initializes with random color and empty shifts`() = runTest(scheduler) {
+        viewModel.state.test {
+            val loading = awaitItem().view
+            assertTrue(loading is CreateHospitalState.Loading)
+
+            val loaded = awaitItem().view as CreateHospitalState.Loaded
+            assertEquals(fixedColor, loaded.hospitalColor)
+            assertEquals(0, loaded.shifts.size)
+            assertFalse(loaded.canSave)
+            cancelAndIgnoreRemainingEvents()
         }
+    }
 
     @Test
-    fun `UpdateName trims to 60 chars and clears error for valid name`() =
-        runTest(scheduler) {
-            viewModel.state.test {
-                awaitItem()
-                viewModel.execute(CreateHospitalIntent.UpdateName("Hospital La Paz"))
-                advanceUntilIdle()
-                val state = awaitItem().view as CreateHospitalState.Loaded
-                assertEquals("Hospital La Paz", state.name)
-                assertNull(state.nameError)
-                cancelAndIgnoreRemainingEvents()
-            }
+    fun `update name validates length and keeps clean state`() = runTest(scheduler) {
+        viewModel.state.test {
+            awaitItem()
+            awaitItem()
+
+            viewModel.execute(CreateHospitalIntent.UpdateName("A".repeat(31)))
+            advanceUntilIdle()
+
+            val state = awaitItem().view as CreateHospitalState.Loaded
+            assertEquals("A".repeat(31), state.name)
+            assertNotNull(state.nameError)
+            assertFalse(state.canSave)
+            cancelAndIgnoreRemainingEvents()
         }
+    }
 
     @Test
-    fun `UpdateName caps at 60 characters`() =
-        runTest(scheduler) {
-            viewModel.state.test {
-                awaitItem()
-                val longName = "A".repeat(70)
-                viewModel.execute(CreateHospitalIntent.UpdateName(longName))
-                advanceUntilIdle()
-                val state = awaitItem().view as CreateHospitalState.Loaded
-                assertEquals(60, state.name.length)
-                cancelAndIgnoreRemainingEvents()
-            }
+    fun `navigate back emits side effect`() = runTest(scheduler) {
+        viewModel.state.test {
+            awaitItem()
+            awaitItem()
+
+            viewModel.execute(CreateHospitalIntent.NavigateBack)
+            advanceUntilIdle()
+
+            val state = awaitItem()
+            assertTrue(state.sideEffects.any { it is CreateHospitalSideEffect.NavigateBack })
+            cancelAndIgnoreRemainingEvents()
         }
+    }
 
     @Test
-    fun `UpdateIrpf shows error for out-of-range value`() =
-        runTest(scheduler) {
-            viewModel.state.test {
-                awaitItem()
-                viewModel.execute(CreateHospitalIntent.UpdateIrpf("150"))
-                advanceUntilIdle()
-                val state = awaitItem().view as CreateHospitalState.Loaded
-                assertNotNull(state.irpfError)
-                assertFalse(state.canSave)
-                cancelAndIgnoreRemainingEvents()
-            }
+    fun `open and dismiss shift sheet updates form state`() = runTest(scheduler) {
+        viewModel.state.test {
+            awaitItem()
+            awaitItem()
+
+            viewModel.execute(CreateHospitalIntent.OpenShiftSheet)
+            advanceUntilIdle()
+            val opened = awaitItem().view as CreateHospitalState.Loaded
+            assertNotNull(opened.shiftForm)
+
+            viewModel.execute(CreateHospitalIntent.DismissShiftSheet)
+            advanceUntilIdle()
+            val dismissed = awaitItem().view as CreateHospitalState.Loaded
+            assertNull(dismissed.shiftForm)
+            cancelAndIgnoreRemainingEvents()
         }
+    }
 
     @Test
-    fun `AddShift appends a new empty shift`() =
-        runTest(scheduler) {
-            viewModel.state.test {
-                awaitItem()
-                viewModel.execute(CreateHospitalIntent.AddShift)
-                advanceUntilIdle()
-                val state = awaitItem().view as CreateHospitalState.Loaded
-                assertEquals(2, state.shifts.size)
-                cancelAndIgnoreRemainingEvents()
-            }
+    fun `update irpf detects invalid values`() = runTest(scheduler) {
+        viewModel.state.test {
+            awaitItem()
+            awaitItem()
+
+            viewModel.execute(CreateHospitalIntent.UpdateIrpf("150"))
+            advanceUntilIdle()
+
+            val state = awaitItem().view as CreateHospitalState.Loaded
+            assertNotNull(state.irpfError)
+            assertFalse(state.canSave)
+            cancelAndIgnoreRemainingEvents()
         }
+    }
 
     @Test
-    fun `RemoveShift does nothing when only one shift remains`() =
-        runTest(scheduler) {
-            viewModel.state.test {
-                awaitItem()
-                viewModel.execute(CreateHospitalIntent.RemoveShift(0))
-                advanceUntilIdle()
-                expectNoEvents()
-                cancelAndIgnoreRemainingEvents()
-            }
+    fun `valid shift form can be saved`() = runTest(scheduler) {
+        viewModel.state.test {
+            awaitItem()
+            awaitItem()
+
+            viewModel.execute(CreateHospitalIntent.OpenShiftSheet)
+            advanceUntilIdle()
+            awaitItem()
+
+            viewModel.execute(
+                CreateHospitalIntent.UpdateNewShift(
+                    ShiftFormUiState(name = "Morning", startTime = "08:00", endTime = "15:00", hourlyRate = "22.5"),
+                ),
+            )
+            advanceUntilIdle()
+
+            val state = awaitItem().view as CreateHospitalState.Loaded
+            assertTrue(state.canSaveShiftForm)
+            assertNull(state.shiftForm?.startTimeError)
+            cancelAndIgnoreRemainingEvents()
         }
+    }
 
     @Test
-    fun `canSave is true when all fields are valid`() =
-        runTest(scheduler) {
-            viewModel.state.test {
-                awaitItem()
+    fun `save valid shift adds shift to hospital`() = runTest(scheduler) {
+        viewModel.state.test {
+            awaitItem()
+            awaitItem()
 
-                viewModel.execute(CreateHospitalIntent.UpdateName("Hospital La Paz"))
-                advanceUntilIdle()
-                awaitItem()
+            viewModel.execute(CreateHospitalIntent.OpenShiftSheet)
+            advanceUntilIdle()
+            awaitItem()
 
-                viewModel.execute(CreateHospitalIntent.UpdateIrpf("15"))
-                advanceUntilIdle()
-                awaitItem()
+            viewModel.execute(
+                CreateHospitalIntent.UpdateNewShift(
+                    ShiftFormUiState(name = "Morning", startTime = "08:00", endTime = "15:00", hourlyRate = "22.5"),
+                ),
+            )
+            advanceUntilIdle()
 
-                viewModel.execute(
-                    CreateHospitalIntent.UpdateShiftAt(
-                        0,
-                        ShiftFormUiState(name = "Mañana", startTime = "08:00", endTime = "15:00", hourlyRate = "18.5"),
-                    ),
-                )
-                advanceUntilIdle()
-                val state = awaitItem().view as CreateHospitalState.Loaded
-                assertTrue(state.canSave)
-                cancelAndIgnoreRemainingEvents()
-            }
+            viewModel.execute(CreateHospitalIntent.SaveShift)
+            advanceUntilIdle()
+
+            val state = viewModel.state.value.view as CreateHospitalState.Loaded
+            assertEquals(1, state.shifts.size)
+            assertNull(state.shiftForm)
+            assertFalse(state.isShiftFormSaving)
+            cancelAndIgnoreRemainingEvents()
         }
+    }
 
     @Test
-    fun `shift start hour after end hour blocks canSave`() =
-        runTest(scheduler) {
-            viewModel.state.test {
-                awaitItem()
+    fun `save hospital creates record and navigates back`() = runTest(scheduler) {
+        viewModel.state.test {
+            awaitItem()
+            awaitItem()
 
-                viewModel.execute(CreateHospitalIntent.UpdateName("Hospital"))
-                advanceUntilIdle()
-                awaitItem()
+            viewModel.execute(CreateHospitalIntent.UpdateName("Hospital La Paz"))
+            advanceUntilIdle()
+            awaitItem()
 
-                viewModel.execute(CreateHospitalIntent.UpdateIrpf("15"))
-                advanceUntilIdle()
-                awaitItem()
+            viewModel.execute(CreateHospitalIntent.UpdateIrpf("15"))
+            advanceUntilIdle()
+            awaitItem()
 
-                viewModel.execute(
-                    CreateHospitalIntent.UpdateShiftAt(
-                        0,
-                        ShiftFormUiState(name = "Turno", startTime = "15:00", endTime = "08:00", hourlyRate = "18.5"),
-                    ),
-                )
-                advanceUntilIdle()
-                val state = awaitItem().view as CreateHospitalState.Loaded
-                assertFalse(state.canSave)
-                assertNotNull(state.shifts[0].startTimeError)
-                cancelAndIgnoreRemainingEvents()
-            }
+            viewModel.execute(CreateHospitalIntent.OpenShiftSheet)
+            advanceUntilIdle()
+            awaitItem()
+
+            viewModel.execute(
+                CreateHospitalIntent.UpdateNewShift(
+                    ShiftFormUiState(name = "Morning", startTime = "08:00", endTime = "15:00", hourlyRate = "18.5"),
+                ),
+            )
+            advanceUntilIdle()
+
+            viewModel.execute(CreateHospitalIntent.SaveShift)
+            advanceUntilIdle()
+
+            viewModel.execute(CreateHospitalIntent.Save)
+            advanceUntilIdle()
+
+            val state = viewModel.state.value
+            assertTrue((state.view as CreateHospitalState.Loaded).isSaving)
+            assertTrue(state.sideEffects.any { it is CreateHospitalSideEffect.NavigateBack })
+            assertTrue(createCalled)
+            assertEquals(fixedColor, lastCreatedColor)
+            cancelAndIgnoreRemainingEvents()
         }
+    }
 
     @Test
-    fun `Save transitions to Saving then emits NavigateBack and uses random color`() =
-        runTest(scheduler) {
-            viewModel.state.test {
-                awaitItem()
+    fun `load fails gracefully when random color lookup errors`() = runTest(scheduler) {
+        throwOnRandomColor = true
+        viewModel = CreateHospitalViewModel(dispatcherProvider, createHospital, getRandomColor)
 
-                viewModel.execute(CreateHospitalIntent.UpdateName("Hospital La Paz"))
-                advanceUntilIdle()
-                awaitItem()
-
-                viewModel.execute(CreateHospitalIntent.UpdateIrpf("15"))
-                advanceUntilIdle()
-                awaitItem()
-
-                viewModel.execute(
-                    CreateHospitalIntent.UpdateShiftAt(
-                        0,
-                        ShiftFormUiState(name = "Mañana", startTime = "08:00", endTime = "15:00", hourlyRate = "18.5"),
-                    ),
-                )
-                advanceUntilIdle()
-                awaitItem()
-
-                viewModel.execute(CreateHospitalIntent.Save)
-                advanceUntilIdle()
-
-                val saving = awaitItem()
-                assertTrue((saving.view as CreateHospitalState.Loaded).isSaving)
-
-                val withSideEffect: State<CreateHospitalState, CreateHospitalSideEffect> = awaitItem()
-                assertTrue(withSideEffect.sideEffects.any { it is CreateHospitalSideEffect.NavigateBack })
-                assertTrue(createCalled)
-                assertEquals(fixedColor, lastCreatedColor)
-                cancelAndIgnoreRemainingEvents()
-            }
+        viewModel.state.test {
+            awaitItem()
+            val error = awaitItem().view
+            assertTrue(error is CreateHospitalState.Error)
+            cancelAndIgnoreRemainingEvents()
         }
+    }
 }

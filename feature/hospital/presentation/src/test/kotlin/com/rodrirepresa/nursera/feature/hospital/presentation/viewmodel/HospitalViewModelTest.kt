@@ -1,19 +1,18 @@
 package com.rodrirepresa.nursera.feature.hospital.presentation.viewmodel
 
-import app.cash.turbine.test
 import com.rodrirepresa.nursera.core.common.DispatcherProvider
 import com.rodrirepresa.nursera.feature.hospital.domain.model.Hospital
 import com.rodrirepresa.nursera.feature.hospital.domain.model.ShiftType
 import com.rodrirepresa.nursera.feature.hospital.domain.usecase.DeleteHospitalUseCase
 import com.rodrirepresa.nursera.feature.hospital.domain.usecase.ObserveHospitalsUseCase
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.viewmodel.HospitalIntent
+import com.rodrirepresa.nursera.feature.hospital.presentation.list.viewmodel.HospitalSideEffect
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.viewmodel.HospitalState
 import com.rodrirepresa.nursera.feature.hospital.presentation.list.viewmodel.HospitalViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -51,9 +50,7 @@ class HospitalViewModelTest {
 
     private val deleteHospital =
         object : DeleteHospitalUseCase {
-            override suspend fun invoke(id: UUID) {
-                hospitalsFlow.update { current -> current.filter { it.id != id } }
-            }
+            override suspend fun invoke(id: UUID) = Unit
         }
 
     private lateinit var viewModel: HospitalViewModel
@@ -62,6 +59,7 @@ class HospitalViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         viewModel = HospitalViewModel(dispatcherProvider, observeHospitals, deleteHospital)
+        advanceState()
     }
 
     @After
@@ -70,51 +68,39 @@ class HospitalViewModelTest {
     }
 
     @Test
-    fun `initial state is Loading`() =
-        runTest(scheduler) {
-            viewModel.state.test {
-                assertTrue(awaitItem().view is HospitalState.Loading)
-                cancelAndIgnoreRemainingEvents()
-            }
-        }
+    fun `load exposes hospitals from observed flow`() {
+        val hospital = makeHospital()
+        hospitalsFlow.value = listOf(hospital)
+        advanceState()
+
+        val loaded = viewModel.state.value.view as HospitalState.Loaded
+        assertEquals(1, loaded.hospitals.size)
+        assertEquals(hospital.name, loaded.hospitals.first().name)
+    }
 
     @Test
-    fun `after load state transitions to Loaded with hospitals`() =
-        runTest(scheduler) {
-            val hospital = makeHospital()
-            hospitalsFlow.value = listOf(hospital)
+    fun `open hospital detail emits side effect`() {
+        val hospital = makeHospital()
+        hospitalsFlow.value = listOf(hospital)
+        advanceState()
 
-            viewModel.state.test {
-                assertTrue(awaitItem().view is HospitalState.Loading)
-                viewModel.execute(HospitalIntent.Load)
-                advanceUntilIdle()
-                val loaded = awaitItem().view as HospitalState.Loaded
-                assertEquals(1, loaded.hospitals.size)
-                assertEquals(hospital.name, loaded.hospitals.first().name)
-                cancelAndIgnoreRemainingEvents()
-            }
-        }
+        viewModel.execute(HospitalIntent.OpenHospitalDetail(hospital.id))
+        advanceState()
+
+        assertTrue(
+            viewModel.state.value.sideEffects.any {
+                it is HospitalSideEffect.OpenHospitalDetail && (it as HospitalSideEffect.OpenHospitalDetail).id == hospital.id
+            },
+        )
+    }
 
     @Test
-    fun `delete intent removes hospital from state`() =
-        runTest(scheduler) {
-            val hospital = makeHospital()
-            hospitalsFlow.value = listOf(hospital)
+    fun `open create hospital emits side effect`() {
+        viewModel.execute(HospitalIntent.OpenCreateHospital)
+        advanceState()
 
-            viewModel.state.test {
-                assertTrue(awaitItem().view is HospitalState.Loading)
-                viewModel.execute(HospitalIntent.Load)
-                advanceUntilIdle()
-                val loaded = awaitItem().view as HospitalState.Loaded
-                assertEquals(1, loaded.hospitals.size)
-
-                viewModel.execute(HospitalIntent.OpenHospitalDetail(hospital.id))
-                advanceUntilIdle()
-                val afterDelete = awaitItem().view as HospitalState.Loaded
-                assertTrue(afterDelete.hospitals.isEmpty())
-                cancelAndIgnoreRemainingEvents()
-            }
-        }
+        assertTrue(viewModel.state.value.sideEffects.any { it is HospitalSideEffect.OpenCreateHospital })
+    }
 
     private fun makeHospital() =
         Hospital(
@@ -122,9 +108,12 @@ class HospitalViewModelTest {
             name = "Test Hospital",
             color = 0xFF1565C0.toInt(),
             irpf = 15.0f,
-            shifts =
-                listOf(
-                    ShiftType(UUID.randomUUID(), "Mañana", LocalTime.of(8, 0), LocalTime.of(15, 0), 18.50),
-                ),
+            shifts = listOf(ShiftType(UUID.randomUUID(), "Morning", LocalTime.of(8, 0), LocalTime.of(15, 0), 18.50)),
         )
+
+    private fun advanceState() {
+        runTest(scheduler) {
+            advanceUntilIdle()
+        }
+    }
 }

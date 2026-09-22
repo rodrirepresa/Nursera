@@ -3,7 +3,6 @@ plugins {
     id("nursera.kotlin.android")
     id("nursera.compose")
     id("nursera.hilt.android")
-    id("nursera.junit")
     alias(libs.plugins.kotlin.serialization)
 }
 
@@ -41,4 +40,5 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
     testImplementation(libs.androidx.arch.core.testing)
+    testImplementation(libs.robolectric)
 }

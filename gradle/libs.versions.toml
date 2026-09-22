@@ -18,6 +18,7 @@ mvi-compose = "0.3.0"
 mvi-kotest = "0.0.5"
 coroutines = "1.9.0"
 turbine = "1.1.0"
+robolectric = "4.14.1"
 ktlint = "12.1.2"
 kotlinxImmutable = "0.4.0"
 
@@ -48,6 +49,7 @@ kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 androidx-arch-core-testing = { group = "androidx.arch.core", name = "core-testing", version = "2.2.0" }
 javax-inject = { group = "javax.inject", name = "javax.inject", version = "1" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
