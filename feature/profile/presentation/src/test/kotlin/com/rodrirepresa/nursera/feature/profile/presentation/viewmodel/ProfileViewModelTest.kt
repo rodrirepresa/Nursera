@@ -169,8 +169,7 @@ class ProfileViewModelTest {
         runTest(scheduler) {
             val failingObserveMonthScheduleUseCase =
                 object : ObserveMonthScheduleUseCase {
-                    override fun invoke(month: YearMonth): Flow<List<ScheduledShift>> =
-                        flow { error("schedule unavailable") }
+                    override fun invoke(month: YearMonth): Flow<List<ScheduledShift>> = flow { error("schedule unavailable") }
                 }
 
             val failingViewModel =

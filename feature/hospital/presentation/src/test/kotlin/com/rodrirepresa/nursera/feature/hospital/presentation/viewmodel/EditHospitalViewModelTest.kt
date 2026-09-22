@@ -44,54 +44,68 @@ class EditHospitalViewModelTest {
     private val scheduler = TestCoroutineScheduler()
     private val testDispatcher = StandardTestDispatcher(scheduler)
 
-    private val dispatcherProvider = object : DispatcherProvider {
-        override fun default() = testDispatcher
-        override fun io() = testDispatcher
-        override fun main() = testDispatcher
-    }
+    private val dispatcherProvider =
+        object : DispatcherProvider {
+            override fun default() = testDispatcher
+
+            override fun io() = testDispatcher
+
+            override fun main() = testDispatcher
+        }
 
     private val hospitalId = UUID.randomUUID()
     private val shiftId = UUID.randomUUID()
-    private val hospitalFlow = MutableStateFlow(
-        Hospital(
-            id = hospitalId,
-            name = "Hospital La Paz",
-            color = 0xFFDAF5F0.toInt(),
-            irpf = 15.0f,
-            shifts = listOf(ShiftType(shiftId, "Morning", LocalTime.of(8, 0), LocalTime.of(15, 0), 18.50)),
-        ),
-    )
+    private val hospitalFlow =
+        MutableStateFlow(
+            Hospital(
+                id = hospitalId,
+                name = "Hospital La Paz",
+                color = 0xFFDAF5F0.toInt(),
+                irpf = 15.0f,
+                shifts = listOf(ShiftType(shiftId, "Morning", LocalTime.of(8, 0), LocalTime.of(15, 0), 18.50)),
+            ),
+        )
 
-    private val observeHospitalByIdUseCase = object : ObserveHospitalByIdUseCase {
-        override fun invoke(id: UUID): Flow<Hospital> = hospitalFlow
-    }
+    private val observeHospitalByIdUseCase =
+        object : ObserveHospitalByIdUseCase {
+            override fun invoke(id: UUID): Flow<Hospital> = hospitalFlow
+        }
 
     private var updatedIrpf: Float? = null
-    private val updateHospitalIrpfUseCase = object : UpdateHospitalIrpfUseCase {
-        override suspend fun invoke(id: UUID, irpf: Float) {
-            updatedIrpf = irpf
+    private val updateHospitalIrpfUseCase =
+        object : UpdateHospitalIrpfUseCase {
+            override suspend fun invoke(
+                id: UUID,
+                irpf: Float,
+            ) {
+                updatedIrpf = irpf
+            }
         }
-    }
 
     private var addShiftCalled = false
-    private val addShiftToHospitalUseCase = object : AddShiftToHospitalUseCase {
-        override suspend fun invoke(
-            hospitalId: UUID,
-            name: String,
-            startTime: LocalTime,
-            endTime: LocalTime,
-            hourlyRate: Double,
-        ) {
-            addShiftCalled = true
+    private val addShiftToHospitalUseCase =
+        object : AddShiftToHospitalUseCase {
+            override suspend fun invoke(
+                hospitalId: UUID,
+                name: String,
+                startTime: LocalTime,
+                endTime: LocalTime,
+                hourlyRate: Double,
+            ) {
+                addShiftCalled = true
+            }
         }
-    }
 
     private var deletedIds: List<UUID> = emptyList()
-    private val deleteShiftsFromHospitalUseCase = object : DeleteShiftsFromHospitalUseCase {
-        override suspend fun invoke(hospitalId: UUID, shiftsIds: List<UUID>) {
-            deletedIds = shiftsIds
+    private val deleteShiftsFromHospitalUseCase =
+        object : DeleteShiftsFromHospitalUseCase {
+            override suspend fun invoke(
+                hospitalId: UUID,
+                shiftsIds: List<UUID>,
+            ) {
+                deletedIds = shiftsIds
+            }
         }
-    }
 
     private lateinit var viewModel: EditHospitalViewModel
 
@@ -101,14 +115,15 @@ class EditHospitalViewModelTest {
         updatedIrpf = null
         addShiftCalled = false
         deletedIds = emptyList()
-        viewModel = EditHospitalViewModel(
-            dispatcherProvider = dispatcherProvider,
-            addShiftToHospitalUseCase = addShiftToHospitalUseCase,
-            updateHospitalIrpfUseCase = updateHospitalIrpfUseCase,
-            observeHospitalByIdUseCase = observeHospitalByIdUseCase,
-            deleteShiftsFromHospitalUseCase = deleteShiftsFromHospitalUseCase,
-            savedStateHandle = SavedStateHandle(mapOf("hospitalId" to hospitalId.toString())),
-        )
+        viewModel =
+            EditHospitalViewModel(
+                dispatcherProvider = dispatcherProvider,
+                addShiftToHospitalUseCase = addShiftToHospitalUseCase,
+                updateHospitalIrpfUseCase = updateHospitalIrpfUseCase,
+                observeHospitalByIdUseCase = observeHospitalByIdUseCase,
+                deleteShiftsFromHospitalUseCase = deleteShiftsFromHospitalUseCase,
+                savedStateHandle = SavedStateHandle(mapOf("hospitalId" to hospitalId.toString())),
+            )
     }
 
     @After
@@ -117,148 +132,156 @@ class EditHospitalViewModelTest {
     }
 
     @Test
-    fun `load populates hospital data`() = runTest(scheduler) {
-        viewModel.state.test {
-            val loading = awaitItem().view
-            assertTrue(loading is EditHospitalState.Loading)
+    fun `load populates hospital data`() =
+        runTest(scheduler) {
+            viewModel.state.test {
+                val loading = awaitItem().view
+                assertTrue(loading is EditHospitalState.Loading)
 
-            val loaded = awaitItem().view as EditHospitalState.Loaded
-            assertEquals("Hospital La Paz", loaded.hospitalName)
-            assertEquals("15", loaded.irpf)
-            assertEquals(1, loaded.shifts.size)
-            assertTrue(loaded.shifts.first() is ShiftItem.Existing)
-            assertNull(loaded.shiftForm)
-            cancelAndIgnoreRemainingEvents()
+                val loaded = awaitItem().view as EditHospitalState.Loaded
+                assertEquals("Hospital La Paz", loaded.hospitalName)
+                assertEquals("15", loaded.irpf)
+                assertEquals(1, loaded.shifts.size)
+                assertTrue(loaded.shifts.first() is ShiftItem.Existing)
+                assertNull(loaded.shiftForm)
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 
     @Test
-    fun `open and dismiss shift sheet toggles form`() = runTest(scheduler) {
-        viewModel.state.test {
-            awaitItem()
-            awaitItem()
+    fun `open and dismiss shift sheet toggles form`() =
+        runTest(scheduler) {
+            viewModel.state.test {
+                awaitItem()
+                awaitItem()
 
-            viewModel.execute(EditHospitalIntent.OpenShiftSheet)
-            advanceUntilIdle()
-            val opened = awaitItem().view as EditHospitalState.Loaded
-            assertNotNull(opened.shiftForm)
+                viewModel.execute(EditHospitalIntent.OpenShiftSheet)
+                advanceUntilIdle()
+                val opened = awaitItem().view as EditHospitalState.Loaded
+                assertNotNull(opened.shiftForm)
 
-            viewModel.execute(EditHospitalIntent.DismissShiftSheet)
-            advanceUntilIdle()
-            val dismissed = awaitItem().view as EditHospitalState.Loaded
-            assertNull(dismissed.shiftForm)
-            cancelAndIgnoreRemainingEvents()
+                viewModel.execute(EditHospitalIntent.DismissShiftSheet)
+                advanceUntilIdle()
+                val dismissed = awaitItem().view as EditHospitalState.Loaded
+                assertNull(dismissed.shiftForm)
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 
     @Test
-    fun `update valid irpf persists change`() = runTest(scheduler) {
-        viewModel.state.test {
-            awaitItem()
-            awaitItem()
+    fun `update valid irpf persists change`() =
+        runTest(scheduler) {
+            viewModel.state.test {
+                awaitItem()
+                awaitItem()
 
-            viewModel.execute(EditHospitalIntent.UpdateIrpf("20"))
-            advanceUntilIdle()
+                viewModel.execute(EditHospitalIntent.UpdateIrpf("20"))
+                advanceUntilIdle()
 
-            val state = awaitItem().view as EditHospitalState.Loaded
-            assertEquals("20", state.irpf)
-            assertEquals(20f, updatedIrpf)
-            cancelAndIgnoreRemainingEvents()
+                val state = awaitItem().view as EditHospitalState.Loaded
+                assertEquals("20", state.irpf)
+                assertEquals(20f, updatedIrpf)
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 
     @Test
-    fun `update irpf out of range shows validation error`() = runTest(scheduler) {
-        viewModel.state.test {
-            awaitItem()
-            awaitItem()
+    fun `update irpf out of range shows validation error`() =
+        runTest(scheduler) {
+            viewModel.state.test {
+                awaitItem()
+                awaitItem()
 
-            viewModel.execute(EditHospitalIntent.UpdateIrpf("150"))
-            advanceUntilIdle()
+                viewModel.execute(EditHospitalIntent.UpdateIrpf("150"))
+                advanceUntilIdle()
 
-            val state = awaitItem().view as EditHospitalState.Loaded
-            assertNotNull(state.irpfError)
-            assertNull(updatedIrpf)
-            cancelAndIgnoreRemainingEvents()
+                val state = awaitItem().view as EditHospitalState.Loaded
+                assertNotNull(state.irpfError)
+                assertNull(updatedIrpf)
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 
     @Test
-    fun `save valid shift calls use case and dismisses sheet`() = runTest(scheduler) {
-        viewModel.state.test {
-            awaitItem()
-            awaitItem()
+    fun `save valid shift calls use case and dismisses sheet`() =
+        runTest(scheduler) {
+            viewModel.state.test {
+                awaitItem()
+                awaitItem()
 
-            viewModel.execute(EditHospitalIntent.OpenShiftSheet)
-            advanceUntilIdle()
-            awaitItem()
+                viewModel.execute(EditHospitalIntent.OpenShiftSheet)
+                advanceUntilIdle()
+                awaitItem()
 
-            viewModel.execute(
-                EditHospitalIntent.UpdateNewShift(
-                    ShiftFormUiState(name = "Evening", startTime = "15:00", endTime = "22:00", hourlyRate = "19.0"),
-                ),
-            )
-            advanceUntilIdle()
+                viewModel.execute(
+                    EditHospitalIntent.UpdateNewShift(
+                        ShiftFormUiState(name = "Evening", startTime = "15:00", endTime = "22:00", hourlyRate = "19.0"),
+                    ),
+                )
+                advanceUntilIdle()
 
-            viewModel.execute(EditHospitalIntent.SaveShift)
-            advanceUntilIdle()
+                viewModel.execute(EditHospitalIntent.SaveShift)
+                advanceUntilIdle()
 
-            val state = viewModel.state.value.view as EditHospitalState.Loaded
-            assertTrue(addShiftCalled)
-            assertNull(state.shiftForm)
-            assertFalse(state.isShiftFormSaving)
-            cancelAndIgnoreRemainingEvents()
+                val state = viewModel.state.value.view as EditHospitalState.Loaded
+                assertTrue(addShiftCalled)
+                assertNull(state.shiftForm)
+                assertFalse(state.isShiftFormSaving)
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 
     @Test
-    fun `toggle existing shift selection marks item selected`() = runTest(scheduler) {
-        viewModel.state.test {
-            awaitItem()
-            awaitItem()
+    fun `toggle existing shift selection marks item selected`() =
+        runTest(scheduler) {
+            viewModel.state.test {
+                awaitItem()
+                awaitItem()
 
-            viewModel.execute(EditHospitalIntent.ToggleExistingShiftSelection(shiftId))
-            advanceUntilIdle()
+                viewModel.execute(EditHospitalIntent.ToggleExistingShiftSelection(shiftId))
+                advanceUntilIdle()
 
-            val state = awaitItem().view as EditHospitalState.Loaded
-            val existing = state.shifts.filterIsInstance<ShiftItem.Existing>().first { it.model.id == shiftId }
-            assertTrue(existing.isSelected)
-            cancelAndIgnoreRemainingEvents()
+                val state = awaitItem().view as EditHospitalState.Loaded
+                val existing = state.shifts.filterIsInstance<ShiftItem.Existing>().first { it.model.id == shiftId }
+                assertTrue(existing.isSelected)
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 
     @Test
-    fun `delete selected shifts removes item and calls use case`() = runTest(scheduler) {
-        viewModel.state.test {
-            awaitItem()
-            awaitItem()
+    fun `delete selected shifts removes item and calls use case`() =
+        runTest(scheduler) {
+            viewModel.state.test {
+                awaitItem()
+                awaitItem()
 
-            viewModel.execute(EditHospitalIntent.ToggleExistingShiftSelection(shiftId))
-            advanceUntilIdle()
-            awaitItem()
+                viewModel.execute(EditHospitalIntent.ToggleExistingShiftSelection(shiftId))
+                advanceUntilIdle()
+                awaitItem()
 
-            viewModel.execute(EditHospitalIntent.DeleteSelectedShifts)
-            advanceUntilIdle()
+                viewModel.execute(EditHospitalIntent.DeleteSelectedShifts)
+                advanceUntilIdle()
 
-            val state = awaitItem().view as EditHospitalState.Loaded
-            assertEquals(listOf(shiftId), deletedIds)
-            assertTrue(state.shifts.none { it is ShiftItem.Existing && it.model.id == shiftId })
-            cancelAndIgnoreRemainingEvents()
+                val state = awaitItem().view as EditHospitalState.Loaded
+                assertEquals(listOf(shiftId), deletedIds)
+                assertTrue(state.shifts.none { it is ShiftItem.Existing && it.model.id == shiftId })
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 
     @Test
-    fun `navigate back emits side effect`() = runTest(scheduler) {
-        viewModel.state.test {
-            awaitItem()
-            awaitItem()
+    fun `navigate back emits side effect`() =
+        runTest(scheduler) {
+            viewModel.state.test {
+                awaitItem()
+                awaitItem()
 
-            viewModel.execute(EditHospitalIntent.NavigateBack)
-            advanceUntilIdle()
+                viewModel.execute(EditHospitalIntent.NavigateBack)
+                advanceUntilIdle()
 
-            val state = awaitItem()
-            assertTrue(state.sideEffects.any { it is EditHospitalSideEffect.NavigateBack })
-            cancelAndIgnoreRemainingEvents()
+                val state = awaitItem()
+                assertTrue(state.sideEffects.any { it is EditHospitalSideEffect.NavigateBack })
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 }
