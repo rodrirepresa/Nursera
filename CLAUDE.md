@@ -367,7 +367,7 @@ Each feature's `[Feature]Navigation.kt` (inside `list/navigation/` for multi-scr
 ```kotlin
 @Serializable object HospitalGraph          // public — referenced by :app for tab selection
 
-@Serializable private object HospitalList   // private — only used inside the graph
+@Serializable object HospitalList            // public — :app needs it to know when to show the nav bar
 @Serializable private object CreateHospital // private — only used inside the graph
 @Serializable internal data class EditHospital(val hospitalId: String) // internal — ViewModel reads it
 
@@ -395,7 +395,10 @@ fun NavGraphBuilder.hospitalGraph(navController: NavController) {
 - Never pass a `NavController` into a `@Composable` screen — pass typed callback lambdas instead
 - Navigation callbacks are wired in `onSideEffect {}` inside the Screen — never passed to child composables
 - Tab selection uses `NavDestination.hierarchy.hasRoute(KClass)` so the correct tab highlights even when inside a nested graph
-- `NavigationSuiteScaffold` tab clicks use `popUpTo(findStartDestination().id) { saveState = true }` + `restoreState = true` to preserve tab back stacks
+- The bottom bar is a Material 3 `NavigationBar` + `NavigationBarItem` inside the `Scaffold(bottomBar = …)` slot — never a hand-rolled `Row` of `clickable` icons, which loses the tab semantics and the 48dp touch targets
+- Tab clicks use `popUpTo(findStartDestination().id) { saveState = true }` + `launchSingleTop` + `restoreState = true` to preserve tab back stacks
+- The bar is shown/hidden with `AnimatedVisibility` **inside** the `bottomBar` slot, never with an `if` around it: `currentBackStackEntryAsState()` emits the new destination before the transition runs, so an `if` removes the bar instantly and makes the content jump
+- Each `TopLevelDestination` carries both a `graphClass` (tab stays selected on detail screens) and a `tabRootClass` (bar is only visible on the tab's start destination)
 
 ---
 

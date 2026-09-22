@@ -1,9 +1,6 @@
 package com.rodrirepresa.nursera.feature.hospital.presentation.list.navigation
 
 import androidx.navigation.NavController
-import androidx.navigation.NavDestination
-import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
@@ -16,15 +13,13 @@ import kotlinx.serialization.Serializable
 object HospitalGraph
 
 @Serializable
-private object HospitalList
+object HospitalList
 
 @Serializable
 private object CreateHospital
 
 @Serializable
 internal data class EditHospital(val hospitalId: String)
-
-fun NavDestination?.isHospitalTabRoot(): Boolean = this?.hierarchy?.any { it.hasRoute(HospitalList::class) } == true
 
 fun NavGraphBuilder.hospitalGraph(navController: NavController) {
     navigation<HospitalGraph>(startDestination = HospitalList) {
