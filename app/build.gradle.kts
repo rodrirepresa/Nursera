@@ -23,6 +23,7 @@ dependencies {
 
     // Projects
     implementation(projects.core.common)
+    implementation(projects.core.ui)
     implementation(projects.feature.hospital.data)
     implementation(projects.feature.hospital.presentation)
     implementation(projects.feature.schedule.data)
