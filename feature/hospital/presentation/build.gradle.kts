@@ -8,12 +8,6 @@ plugins {
 
 android {
     namespace = "com.rodrirepresa.nursera.feature.hospital.presentation"
-
-    testOptions {
-        unitTests {
-            isIncludeAndroidResources = true
-        }
-    }
 }
 
 dependencies {
