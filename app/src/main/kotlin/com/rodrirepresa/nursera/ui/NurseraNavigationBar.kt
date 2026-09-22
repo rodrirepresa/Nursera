@@ -90,10 +90,10 @@ private fun NurseraNavigationBarSchedulePreview() {
     NurseraNavigationBarPreview(TopLevelDestination.SCHEDULE)
 }
 
-@Preview(name = "Profile selected")
+@Preview(name = "Earnings selected")
 @Composable
-private fun NurseraNavigationBarProfilePreview() {
-    NurseraNavigationBarPreview(TopLevelDestination.PROFILE)
+private fun NurseraNavigationBarEarningsPreview() {
+    NurseraNavigationBarPreview(TopLevelDestination.EARNINGS)
 }
 
 @Composable

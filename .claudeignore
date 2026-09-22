@@ -1,0 +1,58 @@
+# .claudeignore — keeps AI agents out of generated and binary files.
+#
+# Why: every glob/grep an agent runs pays for the paths it returns. This repo has
+# 128 source .kt files but 143 KSP/Hilt-generated .java files under build/, plus
+# ~170 MB of build output. Ignoring them keeps searches precise and cheap.
+#
+# Do NOT add here: gradle/libs.versions.toml, build-logic/, settings.gradle.kts,
+# .github/workflows/, docs/, CLAUDE.md or any res/values*/strings.xml — agents
+# need all of those.
+
+# --- Build output and generated code -----------------------------------------
+# Contains KSP/Hilt/Dagger generated Java, R classes, merged manifests and APKs.
+build/
+.gradle/
+.kotlin/
+*.apk
+*.aab
+*.dex
+*.class
+*.jar
+*.aar
+
+# --- IDE and OS --------------------------------------------------------------
+.idea/
+*.iml
+.DS_Store
+
+# --- Local and secret ---------------------------------------------------------
+# local.properties holds the machine's SDK path; keystores are credentials.
+local.properties
+*.jks
+*.keystore
+.gitconfig
+
+# --- Logs and reports ---------------------------------------------------------
+*.log
+reports/
+report.xml
+.gradletasknamecache
+gradle.deps
+*.salive
+
+# --- Binary assets ------------------------------------------------------------
+# Not readable as text; launcher icons are never edited by hand.
+**/res/mipmap-*/
+*.webp
+*.png
+*.jpg
+*.jpeg
+*.ttf
+*.otf
+
+# --- Gradle wrapper binary ----------------------------------------------------
+gradle/wrapper/gradle-wrapper.jar
+
+# --- Agent scratch ------------------------------------------------------------
+.claude/settings.local.json
+.copilot/

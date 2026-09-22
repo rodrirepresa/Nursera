@@ -60,3 +60,7 @@ reports
 
 # Gradle locks
 *.salive
+
+# AI tooling
+.claude/settings.local.json
+.copilot/

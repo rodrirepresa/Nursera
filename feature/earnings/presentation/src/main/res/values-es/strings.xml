@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="earnings_title">Perfil</string>
+    <string name="earnings_subtitle">Resumen mensual</string>
+    <string name="earnings_error_message">No se pudo cargar el resumen de ingresos.</string>
+    <string name="earnings_previous_month">Mes anterior</string>
+    <string name="earnings_next_month">Mes siguiente</string>
+    <string name="earnings_total_net_label">Total neto</string>
+    <string name="earnings_breakdown_title">Desglose por hospital</string>
+    <string name="earnings_no_data">No hay turnos registrados este mes.</string>
+    <string name="earnings_monthly_stats_title">Resumen del mes</string>
+    <string name="earnings_shifts_count">Turnos trabajados: %1$d</string>
+    <string name="earnings_total_net">Neto estimado: %1$s</string>
+    <string name="earnings_total_gross">Bruto estimado: %1$s</string>
+    <string name="earnings_total_gross_compact">Bruto: %1$s</string>
+    <string name="earnings_top_hospital_none">Hospital principal: —</string>
+    <string name="earnings_top_hospital">Hospital principal: %1$s</string>
+    <string name="earnings_shift_count">%1$d turnos</string>
+</resources>

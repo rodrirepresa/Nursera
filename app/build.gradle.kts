@@ -28,7 +28,7 @@ dependencies {
     implementation(projects.feature.hospital.presentation)
     implementation(projects.feature.schedule.data)
     implementation(projects.feature.schedule.presentation)
-    implementation(projects.feature.profile.presentation)
+    implementation(projects.feature.earnings.presentation)
 
     // Libraries
     implementation(libs.androidx.core.ktx)
