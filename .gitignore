@@ -58,13 +58,5 @@ report.xml
 reports
 /.cache
 
-# Allow local latte folder inside adidas app repo folder
-# to avoid https://youtrack.jetbrains.com/issue/KT-49707 bug
-/latte-android
-
-# Allow local events-core folder inside adidas app repo folder
-# to avoid https://youtrack.jetbrains.com/issue/KT-49707 bug
-/android-events-core
-
 # Gradle locks
 *.salive

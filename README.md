@@ -1,5 +1,10 @@
 # 👩‍⚕️ Nursera
 
+[![CI](https://github.com/rodrirepresa/Nursera/actions/workflows/ci.yml/badge.svg)](https://github.com/rodrirepresa/Nursera/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.0.21-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org)
+[![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-BOM%202024.09-4285F4?logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
+
 **Nursera** is an Android app for nurses in Spain who work across multiple hospitals and need a clearer view of their monthly income. The product helps users define hospitals, configure shift rates, log worked shifts, and understand how those shifts translate into projected gross and net earnings.
 
 This repository is intentionally being shaped as a **portfolio-grade Android project**: product-driven, modular, and built with architecture that scales.
@@ -154,8 +159,15 @@ To keep this repository portfolio-ready, the target standard is:
 - Architecture-first decisions
 - Documentation that explains both the product and the code
 
+Every push and pull request to `main` runs the CI pipeline, which checks
+formatting with ktlint, runs the unit tests and assembles the debug APK.
+
 ## 📌 Notes
 
 - The target audience and product context are currently centered on **nurses in Spain**
 - Some domain terminology intentionally reflects that context, such as **IRPF**
 - The project is **Android-first** today, with room to evolve shared logic further over time
+
+## 📄 License
+
+Distributed under the MIT License. See [`LICENSE`](LICENSE) for details.
