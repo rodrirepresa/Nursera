@@ -4,6 +4,13 @@
     <string name="hospital_list_title">Mis Hospitales</string>
     <string name="hospital_list_add_content_description">Añadir hospital</string>
     <string name="hospital_list_empty_subtitle">Añade aquí tus centros de trabajo</string>
+    <string name="hospital_list_empty_title">Aún no tienes hospitales</string>
+    <string name="hospital_list_empty_message">Añade tu primer hospital para empezar a registrar tus turnos e ingresos.</string>
+    <string name="hospital_list_empty_cta">Añadir hospital</string>
+    <string name="hospital_list_empty_eyebrow">Primeros pasos</string>
+    <string name="hospital_list_empty_step_1">Añade hospital</string>
+    <string name="hospital_list_empty_step_2">Define turnos</string>
+    <string name="hospital_list_empty_step_3">Controla ingresos</string>
     <plurals name="hospital_list_count_subtitle">
         <item quantity="one">Un centro de trabajo</item>
         <item quantity="other">%1$d centros de trabajo</item>

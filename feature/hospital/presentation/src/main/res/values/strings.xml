@@ -4,6 +4,13 @@
     <string name="hospital_list_title">My Hospitals</string>
     <string name="hospital_list_add_content_description">Add hospital</string>
     <string name="hospital_list_empty_subtitle">Add your workplaces here</string>
+    <string name="hospital_list_empty_title">No hospitals yet</string>
+    <string name="hospital_list_empty_message">Add your first hospital to start tracking your shifts and earnings.</string>
+    <string name="hospital_list_empty_cta">Add hospital</string>
+    <string name="hospital_list_empty_eyebrow">Get started</string>
+    <string name="hospital_list_empty_step_1">Add hospital</string>
+    <string name="hospital_list_empty_step_2">Set shifts</string>
+    <string name="hospital_list_empty_step_3">Track income</string>
     <plurals name="hospital_list_count_subtitle">
         <item quantity="one">One workplace</item>
         <item quantity="other">%1$d workplaces</item>

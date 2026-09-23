@@ -7,5 +7,7 @@ import kotlinx.collections.immutable.ImmutableList
 sealed interface HospitalState : LoggableState {
     data object Loading : HospitalState
 
+    data object Empty : HospitalState
+
     data class Loaded(val hospitals: ImmutableList<HospitalUiModel>) : HospitalState
 }
