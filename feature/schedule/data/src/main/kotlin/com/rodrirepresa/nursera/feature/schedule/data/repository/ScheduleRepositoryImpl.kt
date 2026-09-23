@@ -63,7 +63,6 @@ class ScheduleRepositoryImpl
                 add(shift(now.atDay(9), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Night"))
                 add(shift(now.atDay(12), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Morning"))
                 add(shift(now.atDay(16), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Afternoon"))
-                add(shift(now.atDay(23), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Morning"))
                 add(shift(now.atDay(26), lapaz, "Hospital La Paz", 0xFFDAF5F0.toInt(), "Afternoon"))
                 // Gregorio Marañón Hospital — light blue
                 add(shift(now.atDay(3), maranon, "H. G. Marañón", 0xFF90CAF9.toInt(), "Morning"))
@@ -82,7 +81,6 @@ class ScheduleRepositoryImpl
                 // Hospital La Fe — pink — overlaps with La Paz to exercise stacking
                 add(shift(now.atDay(9), lafe, "Hospital La Fe", 0xFFFF8FAB.toInt(), "Morning"))
                 add(shift(now.atDay(16), lafe, "Hospital La Fe", 0xFFFF8FAB.toInt(), "Night"))
-                add(shift(now.atDay(23), lafe, "Hospital La Fe", 0xFFFF8FAB.toInt(), "Morning"))
                 // Ramón y Cajal Hospital — yellow — overlaps with Navarra to exercise stacking
                 add(shift(now.atDay(5), ramon, "H. Ramón y Cajal", 0xFFFFE566.toInt(), "Morning"))
                 add(shift(now.atDay(12), ramon, "H. Ramón y Cajal", 0xFFFFE566.toInt(), "Afternoon"))
