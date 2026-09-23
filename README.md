@@ -5,6 +5,16 @@
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0.21-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org)
 [![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-BOM%202024.09-4285F4?logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
 
+
+
+
+https://github.com/user-attachments/assets/efe42600-596e-4cc1-addd-ee5e3d1b772d
+
+
+
+
+
+
 **Nursera** is an Android app for nurses in Spain who work across multiple hospitals and need a clearer view of their monthly income. The product helps users define hospitals, configure shift rates, log worked shifts, and understand how those shifts translate into projected gross and net earnings.
 
 This repository is intentionally being shaped as a **portfolio-grade Android project**: product-driven, modular, and built with architecture that scales.
