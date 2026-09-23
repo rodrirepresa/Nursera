@@ -13,6 +13,10 @@ internal object HospitalTransform {
         override fun mutate(currentState: HospitalState): HospitalState = HospitalState.Loaded(hospitals.toPersistentList())
     }
 
+    internal data object EmptyState : ViewTransform<HospitalState, HospitalSideEffect>() {
+        override fun mutate(currentState: HospitalState): HospitalState = HospitalState.Empty
+    }
+
     data class AddSideEffect(
         val sideEffect: HospitalSideEffect,
     ) : SideEffectTransform<HospitalState, HospitalSideEffect>() {

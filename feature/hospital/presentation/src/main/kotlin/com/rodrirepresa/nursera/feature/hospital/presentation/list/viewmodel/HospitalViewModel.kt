@@ -55,7 +55,11 @@ internal class HospitalViewModel
 
         private fun executeLoad(): Flow<StateTransform<State<HospitalState, HospitalSideEffect>>> =
             observeHospitalsUseCase().map { hospitals ->
-                HospitalTransform.ShowHospitals(hospitals.map { it.toUiModel() })
+                if (hospitals.isEmpty()) {
+                    HospitalTransform.EmptyState
+                } else {
+                    HospitalTransform.ShowHospitals(hospitals.map { it.toUiModel() })
+                }
             }
 
         private fun executeAddSideEffect(sideEffect: HospitalSideEffect): Flow<StateTransform<State<HospitalState, HospitalSideEffect>>> =
